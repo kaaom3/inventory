@@ -106,8 +106,19 @@
             if (!querySnapshot.empty) {
                 const loanItems = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 const firstItem = loanItems[0];
+
+                const loanDateObj = firstItem.LoanDate?.toDate ? firstItem.LoanDate.toDate() : new Date(firstItem.LoanDate || null);
+                const loanDate = !isNaN(loanDateObj) ? loanDateObj.toLocaleDateString('th-TH') : 'N/A';
+
+                const dueDateObj = firstItem.DueDate?.toDate ? firstItem.DueDate.toDate() : new Date(firstItem.DueDate || null);
+                const dueDate = !isNaN(dueDateObj) ? dueDateObj.toLocaleDateString('th-TH') : 'N/A';
                 
-                document.getElementById('returnDetails').innerHTML = `<p><strong>Loan Group ID:</strong> ${loanGroupId}</p><p><strong>ผู้ยืม:</strong> ${firstItem.BorrowerName}</p>`;
+                document.getElementById('returnDetails').innerHTML = `
+                    <p><strong>Loan Group ID:</strong> ${loanGroupId}</p>
+                    <p><strong>ผู้ยืม:</strong> ${firstItem.BorrowerName}</p>
+                    <p><strong>วันที่ยืม:</strong> ${loanDate}</p>
+                    <p><strong>กำหนดคืน:</strong> ${dueDate}</p>
+                `;
                 const itemsList = document.getElementById('return-items-list');
                 itemsList.innerHTML = '';
 

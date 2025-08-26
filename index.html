@@ -1,11 +1,443 @@
 <!DOCTYPE html>
-
 <html>
-   <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-      <base target="_top">
-   </head>
-   <body>
-      <iframe style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;border: 0;" src="https://script.google.com/macros/s/AKfycbxhd2cI7JXRz3v0xqXmwdLdX57qefWcF25qmRk0Vnjt55VvQiDEqqAlgSl7-pKxbrQc/exec"></iframe>
-   </body>                                                                                       
+<head>
+  <base target="_top">
+  <title>Inventory Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .page-content { display: none; }
+    .nav-link.active { background-color: #4f46e5; color: white; font-weight: 600; }
+    .nav-link:not(.active):hover { background-color: #f3f4f6; color: #1f2937; }
+    .modal { transition: opacity 0.3s ease; }
+    .modal-content { transition: all 0.3s ease; }
+    .modal.opacity-0 .modal-content { transform: scale(0.95); }
+    #qr-reader { border: 2px solid #e5e7eb; border-radius: 0.5rem; overflow: hidden; }
+    .tab-button.active { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff; }
+    .device-card.selected { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); background-color: #eff6ff; }
+    .device-card.selected .selected-icon { opacity: 1; }
+    .selected-icon { opacity: 0; transition: opacity 0.2s ease-in-out; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="flex h-screen">
+    <!-- Sidebar Navigation -->
+    <nav class="w-64 bg-white border-r border-gray-200 p-5 flex flex-col flex-shrink-0">
+        <div class="flex items-center space-x-3 mb-10"><i class="fas fa-cubes text-2xl text-indigo-600"></i><h1 class="text-xl font-bold text-gray-800">Inventory</h1></div>
+        <ul class="space-y-2">
+            <li><a href="#" id="nav-dashboard" onclick="loadPage('Dashboard', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-tachometer-alt w-5 text-center"></i><span>Dashboard</span></a></li>
+            <li><a href="#" id="nav-computers" onclick="loadPage('Computers', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-laptop w-5 text-center"></i><span>Computers</span></a></li>
+            <li><a href="#" id="nav-monitors" onclick="loadPage('Monitors', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-desktop w-5 text-center"></i><span>Monitors</span></a></li>
+            <li><a href="#" id="nav-audio" onclick="loadPage('Audio', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-volume-up w-5 text-center"></i><span>Audio</span></a></li>
+            <li class="pt-4"><div class="px-4 text-xs font-semibold uppercase text-gray-400">Management</div></li>
+            <li><a href="#" id="nav-loan" onclick="loadPage('Loan', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-exchange-alt w-5 text-center"></i><span>ยืม-คืน</span></a></li>
+            <li><a href="#" id="nav-loanhistory" onclick="loadPage('LoanHistory', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-history w-5 text-center"></i><span>ประวัติการยืม</span></a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="flex-1 p-10 overflow-y-auto">
+      <div id="loading-state" class="text-center py-12">Connecting to database...</div>
+
+      <!-- Dashboard Page -->
+      <div id="dashboard-page" class="page-content">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6">Dashboard</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-blue-100 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500">Total Desktops</p><p id="stat-total-desktops" class="text-2xl font-bold text-gray-900">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t mt-2"><span class="text-green-600">Active:</span><span id="stat-desktops-active" class="font-medium text-green-600">0</span></div><div class="flex justify-between"><span class="text-yellow-600">On Loan:</span><span id="stat-desktops-on-loan" class="font-medium text-yellow-600">0</span></div><div class="flex justify-between"><span class="text-orange-600">Repair:</span><span id="stat-desktops-repair" class="font-medium text-orange-600">0</span></div></div></div>
+            <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-indigo-100 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div><div><p class="text-sm text-gray-500">Total Laptops</p><p id="stat-total-laptops" class="text-2xl font-bold text-gray-900">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t mt-2"><span class="text-green-600">Active:</span><span id="stat-laptops-active" class="font-medium text-green-600">0</span></div><div class="flex justify-between"><span class="text-yellow-600">On Loan:</span><span id="stat-laptops-on-loan" class="font-medium text-yellow-600">0</span></div><div class="flex justify-between"><span class="text-orange-600">Repair:</span><span id="stat-laptops-repair" class="font-medium text-orange-600">0</span></div></div></div>
+            <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-green-100 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500">Total Monitors</p><p id="stat-total-monitors" class="text-2xl font-bold text-gray-900">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t mt-2"><span class="text-green-600">Active:</span><span id="stat-monitors-active" class="font-medium text-green-600">0</span></div><div class="flex justify-between"><span class="text-yellow-600">On Loan:</span><span id="stat-monitors-on-loan" class="font-medium text-yellow-600">0</span></div><div class="flex justify-between"><span class="text-orange-600">Repair:</span><span id="stat-monitors-repair" class="font-medium text-orange-600">0</span></div></div></div>
+            <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-red-100 p-3 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div><div><p class="text-sm text-gray-500">Total Audio Devices</p><p id="stat-total-audio" class="text-2xl font-bold text-gray-900">0</p></div></div></div>
+        </div>
+      </div>
+
+      <!-- Inventory Pages -->
+      <div id="computers-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-bold text-gray-900">Computer Inventory</h2><button onclick="openModal('add', 'Computers')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('ComputersTable', this.value)" placeholder="Search computers..." class="w-full md:w-1/3 px-4 py-2 border rounded-lg"></div><div class="bg-white rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="ComputersTable" class="min-w-full"></table></div></div></div>
+      <div id="monitors-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-bold text-gray-900">Monitor Inventory</h2><button onclick="openModal('add', 'Monitors')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('MonitorsTable', this.value)" placeholder="Search monitors..." class="w-full md:w-1/3 px-4 py-2 border rounded-lg"></div><div class="bg-white rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="MonitorsTable" class="min-w-full"></table></div></div></div>
+      <div id="audio-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-bold text-gray-900">Audio Inventory</h2><button onclick="openModal('add', 'Audio')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('AudioTable', this.value)" placeholder="Search audio..." class="w-full md:w-1/3 px-4 py-2 border rounded-lg"></div><div class="bg-white rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AudioTable" class="min-w-full"></table></div></div></div>
+
+      <!-- Loan Page -->
+      <div id="loan-page" class="page-content">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6">ยืม-คืน อุปกรณ์</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div class="lg:col-span-3 bg-white rounded-xl shadow-md p-6 space-y-4">
+                <div class="mb-4 border-b border-gray-200"><nav class="flex -mb-px space-x-4"><button onclick="switchLoanTab('scan', this)" class="tab-button active flex items-center whitespace-nowrap py-3 px-2 border-b-2 font-medium text-sm"><i class="fas fa-camera mr-2"></i>สแกน QR Code</button><button onclick="switchLoanTab('select', this)" class="tab-button flex items-center whitespace-nowrap py-3 px-2 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700"><i class="fas fa-list-ul mr-2"></i>เลือกจากรายการ</button></nav></div>
+                <div id="scan-view">
+                    <div id="qr-reader" class="w-full max-w-sm mx-auto mb-2"></div>
+                    <button id="start-scan-button" onclick="startScanning()" class="w-full mt-2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 flex items-center justify-center"><i class="fas fa-camera mr-2"></i>เริ่มการสแกน</button>
+                </div>
+                <div id="select-view" class="hidden space-y-6">
+                    <div id="category-selection"></div>
+                    <div id="device-list-view" class="hidden"><button onclick="showCategorySelection()" class="mb-4 text-sm text-blue-600 hover:underline"><i class="fas fa-arrow-left mr-2"></i>ย้อนกลับ</button><div id="device-list-container"></div></div>
+                </div>
+            </div>
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">ตะกร้าการยืม</h3>
+                <div id="cart" class="space-y-2 border p-3 rounded-md min-h-[120px] bg-gray-50 mb-6"><p class="text-sm text-gray-500">ยังไม่มีอุปกรณ์ในตะกร้า</p></div>
+                <form id="loanForm" class="space-y-4">
+                    <div><label class="block text-sm font-medium text-gray-700">ชื่อผู้ยืม</label><input type="text" id="borrowerName" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">กำหนดคืน</label><input type="date" id="dueDate" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                    <button type="button" onclick="submitLoan()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg">ยืนยันการยืม</button>
+                </form>
+            </div>
+        </div>
+      </div>
+
+      <!-- Loan History Page -->
+       <div id="loanhistory-page" class="page-content">
+        <div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-bold text-gray-900">ประวัติการยืม-คืน</h2></div>
+        <div class="mb-4"><input type="text" onkeyup="filterTable('LoanHistoryTable', this.value)" placeholder="Search by borrower..." class="w-full md:w-1/3 px-4 py-2 border rounded-lg"></div>
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="LoanHistoryTable" class="min-w-full"></table></div></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <div id="editModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md"><h3 id="editModalTitle" class="text-xl font-semibold mb-6"></h3><form id="editForm" class="space-y-4"></form><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Cancel</button><button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button></div></div></div>
+  <div id="qrModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 text-center"><h3 id="qrModalTitle" class="text-xl font-semibold mb-4"></h3><canvas id="qrCanvas" class="mx-auto"></canvas><button onclick="hideModal('qrModal')" class="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg">Close</button></div></div>
+  <div id="receiptModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md text-center"><h3 class="text-2xl font-bold text-green-600 mb-2">ยืมสำเร็จ!</h3><p class="text-gray-600 mb-6">กรุณาบันทึก QR Code นี้สำหรับคืนอุปกรณ์</p><canvas id="receiptQrCanvas" class="mx-auto border rounded-lg"></canvas><div id="receiptDetails" class="text-left mt-6 text-sm"></div><button onclick="hideModal('receiptModal')" class="mt-8 px-6 py-2 bg-indigo-600 text-white rounded-lg w-full">Close</button></div></div>
+  <div id="returnModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 class="text-xl font-semibold mb-4">คืนอุปกรณ์</h3><div id="returnDetails" class="text-sm mb-4 border-b pb-4"></div><h4 class="text-lg font-semibold text-gray-700 mb-3">รายการที่ยืม:</h4><div id="return-items-list" class="space-y-3"></div><div class="mt-6 flex justify-end"><button onclick="hideModal('returnModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button></div></div></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc, writeBatch, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew", authDomain: "inventory-eedef.firebaseapp.com", projectId: "inventory-eedef", storageBucket: "inventory-eedef.appspot.com", messagingSenderId: "1089383656081", appId: "1:1089383656081:web:bb8e8237a701f356102d30" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [] };
+    let currentEdit = { mode: null, collection: null, id: null };
+    let cartItems = [];
+    let html5QrCode;
+
+    const collectionConfigs = {
+        Computers: { headers: ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location'], nameField: 'ComputerName', serialField: 'SerialNumber', icon: 'fa-laptop' },
+        Monitors: { headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status'], nameField: 'Model', serialField: 'MonitorSerial', icon: 'fa-desktop' },
+        Audio: { headers: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status'], nameField: 'ItemName', serialField: 'SerialNumber', icon: 'fa-volume-up' }
+    };
+
+    window.loadPage = (pageName, navElement) => {
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        if (navElement) navElement.classList.add('active');
+        document.querySelectorAll('.page-content').forEach(page => page.style.display = 'none');
+        document.getElementById(pageName.toLowerCase() + '-page').style.display = 'block';
+        if (pageName === 'Loan') populateCategories();
+    };
+
+    function buildTable(collectionName, data, errorMessage = null) {
+        const table = document.getElementById(collectionName + 'Table');
+        if (!table) return;
+        table.innerHTML = '';
+        const { headers, nameField, serialField } = collectionConfigs[collectionName];
+        const displayHeaders = [...headers, 'Actions'];
+        const thead = document.createElement('thead');
+        thead.className = 'bg-gray-50';
+        thead.innerHTML = `<tr>${displayHeaders.map(h => `<th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">${h}</th>`).join('')}</tr>`;
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        tbody.className = 'divide-y divide-gray-200';
+        if (errorMessage) tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-red-600" colspan="${displayHeaders.length}">${errorMessage}</td></tr>`;
+        else if (data.length === 0) tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-gray-500" colspan="${displayHeaders.length}">No data found.</td></tr>`;
+        else {
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+                headers.forEach(header => tr.innerHTML += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${item[header] || ''}</td>`);
+                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}')" class="text-gray-500 hover:text-gray-800"><i class="fas fa-qrcode"></i></button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        table.appendChild(tbody);
+    }
+
+    function buildLoanHistoryTable(data) {
+        const table = document.getElementById('LoanHistoryTable');
+        if (!table) return;
+        table.innerHTML = '';
+        const headers = ['Borrower', 'Loan Date', 'Due Date', 'Status', 'Items'];
+        const thead = document.createElement('thead');
+        thead.className = 'bg-gray-50';
+        thead.innerHTML = `<tr>${headers.map(h => `<th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">${h}</th>`).join('')}</tr>`;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        tbody.className = 'divide-y divide-gray-200';
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-gray-500" colspan="${headers.length}">No loan history found.</td></tr>`;
+        } else {
+            // Sort by loanDate descending
+            const sortedData = data.sort((a, b) => b.loanDate?.toDate() - a.loanDate?.toDate());
+            sortedData.forEach(loan => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+                const loanDate = loan.loanDate ? loan.loanDate.toDate().toLocaleDateString('th-TH') : 'N/A';
+                const dueDate = loan.dueDate ? loan.dueDate.toDate().toLocaleDateString('th-TH') : 'N/A';
+                const statusColor = loan.status === 'On Loan' ? 'text-yellow-600' : 'text-green-600';
+                const itemsHtml = loan.items.map(item => `<div>${item.name}</div>`).join('');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${loan.borrowerName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${loanDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${dueDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${statusColor}">${loan.status}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700">${itemsHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        table.appendChild(tbody);
+    }
+
+    window.filterTable = (tableId, filterText) => {
+        const rows = document.getElementById(tableId).getElementsByTagName("tr");
+        const filter = filterText.toUpperCase();
+        for (let i = 1; i < rows.length; i++) rows[i].style.display = rows[i].textContent.toUpperCase().includes(filter) ? "" : "none";
+    };
+
+    window.openModal = (mode, collection, id = null) => {
+        currentEdit = { mode, collection, id };
+        const form = document.getElementById('editForm');
+        form.innerHTML = '';
+        const { headers } = collectionConfigs[collection];
+        const itemData = (mode === 'edit') ? allData[collection].find(i => i.id === id) : {};
+        document.getElementById('editModalTitle').textContent = `${mode === 'edit' ? 'Edit' : 'Add'} ${collection.slice(0, -1)}`;
+        headers.forEach(header => form.innerHTML += `<div><label class="block text-sm font-medium text-gray-700">${header}</label><input type="text" name="${header}" value="${itemData[header] || ''}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white"></div>`);
+        document.getElementById('editModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
+
+    window.hideModal = (modalId) => document.getElementById(modalId).classList.add('opacity-0', 'pointer-events-none');
+
+    window.saveData = async () => {
+        const formData = new FormData(document.getElementById('editForm'));
+        const data = Object.fromEntries(formData.entries());
+        const { mode, collection, id } = currentEdit;
+        try {
+            if (mode === 'edit') await setDoc(doc(db, collection, id), data);
+            else await addDoc(collection(db, collection), data);
+            hideModal('editModal');
+        } catch (error) { console.error("Error:", error); alert("Failed to save."); }
+    };
+
+    window.deleteItem = async (collectionName, id) => {
+        if (confirm(`Are you sure?`)) try { await deleteDoc(doc(db, collectionName, id)); } catch (error) { console.error("Error:", error); alert("Failed to delete."); }
+    };
+
+    window.showQrModal = (serialNumber, name) => {
+        document.getElementById('qrModalTitle').textContent = `QR Code for ${name}`;
+        QRCode.toCanvas(document.getElementById('qrCanvas'), serialNumber, { width: 256 });
+        document.getElementById('qrModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
+
+    window.switchLoanTab = (tabName, btn) => {
+        document.querySelectorAll('#loan-page .tab-button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('scan-view').style.display = tabName === 'scan' ? 'block' : 'none';
+        document.getElementById('select-view').style.display = tabName === 'select' ? 'block' : 'none';
+    };
+
+    function populateCategories() {
+        const container = document.getElementById('category-selection');
+        container.innerHTML = `<h3 class="text-lg font-semibold mb-3 text-gray-700">เลือกหมวดหมู่อุปกรณ์</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+        for (const key in collectionConfigs) {
+            const config = collectionConfigs[key];
+            const availableItems = allData[key].filter(item => item.Status === 'Active').length;
+            container.firstElementChild.innerHTML += `<div class="border rounded-lg p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 cursor-pointer" onclick="showDeviceCategory('${key}')"><i class="fas ${config.icon} text-4xl text-blue-500 mb-2"></i><p class="font-semibold text-gray-800">${key}</p><p class="text-xs text-gray-500">${availableItems} items available</p></div>`;
+        }
+        container.innerHTML += `</div>`;
+    }
+
+    window.showDeviceCategory = (collectionName) => {
+        document.getElementById('category-selection').style.display = 'none';
+        document.getElementById('device-list-view').style.display = 'block';
+        const container = document.getElementById('device-list-container');
+        container.innerHTML = '';
+        const availableItems = allData[collectionName].filter(item => item.Status === 'Active');
+        if (availableItems.length > 0) {
+            let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
+            availableItems.forEach(item => {
+                const isSelected = cartItems.some(c => c.id === item.id);
+                html += `<div class="device-card border rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 cursor-pointer ${isSelected ? 'selected' : ''}" onclick="toggleCartItem(this, '${collectionName}', '${item.id}')"><i class="fas ${collectionConfigs[collectionName].icon} text-2xl text-gray-400"></i><div class="flex-1"><p class="font-semibold text-sm text-gray-800">${item[collectionConfigs[collectionName].nameField]}</p><p class="text-xs text-gray-500">SN: ${item[collectionConfigs[collectionName].serialField]}</p></div><i class="fas fa-check-circle text-blue-500 text-xl selected-icon"></i></div>`;
+            });
+            container.innerHTML = html + `</div>`;
+        } else container.innerHTML = `<p class="text-sm text-gray-500">No devices available.</p>`;
+    };
+
+    window.showCategorySelection = () => {
+        document.getElementById('category-selection').style.display = 'block';
+        document.getElementById('device-list-view').style.display = 'none';
+    };
+
+    window.toggleCartItem = (cardElement, collectionName, id) => {
+        cardElement.classList.toggle('selected');
+        const isInCart = cartItems.some(c => c.id === id);
+        if (isInCart) cartItems = cartItems.filter(c => c.id !== id);
+        else addDeviceToCart(collectionName, id);
+        renderCart();
+    };
+
+    window.startScanning = () => {
+        document.getElementById('start-scan-button').disabled = true;
+        html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, code => handleScannedCode(code));
+    };
+    
+    async function handleScannedCode(code) {
+        const loanRef = doc(db, "LoanHistory", code);
+        const loanSnap = await getDoc(loanRef);
+        if (loanSnap.exists()) showReturnModal(loanSnap.id, loanSnap.data());
+        else findDeviceBySerialAndAddToCart(code);
+    }
+
+    function findDeviceBySerialAndAddToCart(serial) {
+        for (const cName in collectionConfigs) {
+            const item = allData[cName]?.find(i => i[collectionConfigs[cName].serialField] === serial);
+            if (item) { addDeviceToCart(cName, item.id); return; }
+        }
+        alert(`Device with SN ${serial} not found.`);
+    }
+
+    function addDeviceToCart(collectionName, id) {
+        const item = allData[collectionName]?.find(i => i.id === id);
+        if (!item) { alert('Device not found!'); return; }
+        if (item.Status !== 'Active') { alert(`Not available. Status: ${item.Status}`); return; }
+        if (cartItems.some(c => c.id === id)) { alert('Already in cart.'); return; }
+        cartItems.push({ ...item, collection: collectionName });
+        renderCart();
+    }
+
+    function renderCart() {
+        const cartDiv = document.getElementById('cart');
+        cartDiv.innerHTML = cartItems.length === 0 ? '<p class="text-sm text-gray-500">ยังไม่มีอุปกรณ์ในตะกร้า</p>' : '';
+        cartItems.forEach((item, index) => {
+            const name = item.ComputerName || item.Model || item.ItemName;
+            cartDiv.innerHTML += `<div class="flex justify-between items-center bg-gray-100 p-2 rounded"><span class="text-sm">${name}</span><button type="button" onclick="removeFromCart(${index})" class="text-red-500 font-bold">X</button></div>`;
+        });
+    }
+    
+    window.removeFromCart = (index) => {
+        const removedItem = cartItems.splice(index, 1)[0];
+        renderCart();
+        const card = document.querySelector(`.device-card[onclick*="'${removedItem.id}'"]`);
+        if (card) card.classList.remove('selected');
+    };
+
+    window.submitLoan = async () => {
+        const borrowerName = document.getElementById('borrowerName').value;
+        const dueDate = document.getElementById('dueDate').value;
+        if (!borrowerName || !dueDate || cartItems.length === 0) return alert('Please fill all fields and add items.');
+        
+        try {
+            const loanDetails = { borrowerName, dueDate: new Date(dueDate), loanDate: serverTimestamp(), status: 'On Loan', items: cartItems.map(i => ({ id: i.id, collection: i.collection, name: i.ComputerName || i.Model || i.ItemName })) };
+            const docRef = await addDoc(collection(db, "LoanHistory"), loanDetails);
+            const batch = writeBatch(db);
+            cartItems.forEach(item => batch.update(doc(db, item.collection, item.id), { Status: 'On Loan' }));
+            await batch.commit();
+            showLoanReceipt(docRef.id, { borrowerName, dueDate, items: cartItems });
+            cartItems = [];
+            renderCart();
+            document.getElementById('loanForm').reset();
+        } catch (error) { console.error("Error:", error); alert('Failed to submit loan.'); }
+    };
+    
+    function showLoanReceipt(loanId, loanDetails) {
+        const modal = document.getElementById('receiptModal');
+        const canvas = document.getElementById('receiptQrCanvas');
+        const detailsDiv = document.getElementById('receiptDetails');
+        QRCode.toCanvas(canvas, loanId, { width: 256 });
+        let detailsHtml = `<p><strong>ผู้ยืม:</strong> ${loanDetails.borrowerName}</p><p><strong>กำหนดคืน:</strong> ${loanDetails.dueDate}</p><h4 class="font-semibold mt-4 mb-2">รายการ:</h4><ul class="list-disc list-inside">`;
+        loanDetails.items.forEach(item => { detailsHtml += `<li>${item.ComputerName || item.Model || item.ItemName}</li>`; });
+        detailsHtml += `</ul>`;
+        detailsDiv.innerHTML = detailsHtml;
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function showReturnModal(loanId, loanData) {
+        const modal = document.getElementById('returnModal');
+        document.getElementById('returnDetails').innerHTML = `<p><strong>ผู้ยืม:</strong> ${loanData.borrowerName}</p><p><strong>สถานะ:</strong> <span class="font-semibold ${loanData.status === 'On Loan' ? 'text-yellow-600' : 'text-green-600'}">${loanData.status}</span></p>`;
+        const itemsList = document.getElementById('return-items-list');
+        itemsList.innerHTML = '';
+        loanData.items.forEach(item => {
+            const isReturned = allData[item.collection]?.find(d => d.id === item.id)?.Status !== 'On Loan';
+            let buttonHtml = isReturned 
+                ? `<span class="text-sm text-gray-500 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
+                : `<button onclick="processReturn('${loanId}', '${item.id}', '${item.collection}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
+            itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b"><p>${item.name}</p>${buttonHtml}</div>`;
+        });
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    window.processReturn = async (loanId, itemId, itemCollection) => {
+        if (!confirm('Confirm return of this item?')) return;
+        try {
+            const batch = writeBatch(db);
+            const itemRef = doc(db, itemCollection, itemId);
+            batch.update(itemRef, { Status: 'Active' });
+            const loan = allData.LoanHistory.find(l => l.id === loanId);
+            const allReturned = loan.items.every(item => {
+                if (item.id === itemId) return true;
+                const device = allData[item.collection]?.find(d => d.id === item.id);
+                return device?.Status !== 'On Loan';
+            });
+            if (allReturned) {
+                const loanRef = doc(db, "LoanHistory", loanId);
+                batch.update(loanRef, { status: 'Returned' });
+            }
+            await batch.commit();
+            alert('Item returned successfully!');
+            hideModal('returnModal');
+        } catch (error) { console.error("Error:", error); alert('Failed to return item.'); }
+    }
+
+    function listenToCollection(collectionName, config) {
+        onSnapshot(collection(db, collectionName), (snapshot) => {
+            allData[collectionName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if (config.isInventory) buildTable(collectionName, allData[collectionName]);
+            else if (collectionName === 'LoanHistory') buildLoanHistoryTable(allData[collectionName]);
+            updateDashboard();
+        }, (error) => {
+            console.error(`Error listening to ${collectionName}: `, error);
+            if (config.isInventory) {
+                let msg = `Error fetching data.`;
+                if (error.code === 'permission-denied') msg = `Permission Denied. Check Firestore Rules.`;
+                buildTable(collectionName, [], msg);
+            }
+        });
+    }
+    
+    function updateDashboard() {
+        const computers = allData['Computers'] || [];
+        const desktops = computers.filter(c => c.Type === 'Desktop');
+        const laptops = computers.filter(c => c.Type === 'Laptop');
+        document.getElementById('stat-total-desktops').textContent = desktops.length;
+        document.getElementById('stat-desktops-active').textContent = desktops.filter(d => d.Status === 'Active').length;
+        document.getElementById('stat-desktops-on-loan').textContent = desktops.filter(d => d.Status === 'On Loan').length;
+        document.getElementById('stat-desktops-repair').textContent = desktops.filter(d => d.Status === 'Repair').length;
+        document.getElementById('stat-total-laptops').textContent = laptops.length;
+        document.getElementById('stat-laptops-active').textContent = laptops.filter(l => l.Status === 'Active').length;
+        document.getElementById('stat-laptops-on-loan').textContent = laptops.filter(l => l.Status === 'On Loan').length;
+        document.getElementById('stat-laptops-repair').textContent = laptops.filter(l => l.Status === 'Repair').length;
+        const monitors = allData['Monitors'] || [];
+        document.getElementById('stat-total-monitors').textContent = monitors.length;
+        document.getElementById('stat-monitors-active').textContent = monitors.filter(m => m.Status === 'Active').length;
+        document.getElementById('stat-monitors-on-loan').textContent = monitors.filter(m => m.Status === 'On Loan').length;
+        document.getElementById('stat-monitors-repair').textContent = monitors.filter(m => m.Status === 'Repair').length;
+        document.getElementById('stat-total-audio').textContent = (allData['Audio'] || []).length;
+    }
+
+    window.addEventListener('load', () => {
+        // Make sure to listen to the correctly cased collection names
+        listenToCollection('Computers', { isInventory: true });
+        listenToCollection('Monitors', { isInventory: true });
+        listenToCollection('Audio', { isInventory: true });
+        listenToCollection('LoanHistory', { isInventory: false });
+        document.getElementById('loading-state').style.display = 'none';
+        loadPage('Dashboard', document.getElementById('nav-dashboard'));
+    });
+  </script>
+</body>
 </html>

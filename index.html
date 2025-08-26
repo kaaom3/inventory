@@ -46,7 +46,12 @@
 
       <!-- Dashboard Page -->
       <div id="dashboard-page" class="page-content">
-        <h2 class="text-3xl font-bold text-gray-900 mb-6">Dashboard</h2>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold text-gray-900">Dashboard</h2>
+            <button onclick="resetAllStatusToActive()" class="bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
+                <i class="fas fa-sync-alt mr-2"></i>Reset All Status
+            </button>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-blue-100 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500">Total Desktops</p><p id="stat-total-desktops" class="text-2xl font-bold text-gray-900">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t mt-2"><span class="text-green-600">Active:</span><span id="stat-desktops-active" class="font-medium text-green-600">0</span></div><div class="flex justify-between"><span class="text-yellow-600">On Loan:</span><span id="stat-desktops-on-loan" class="font-medium text-yellow-600">0</span></div><div class="flex justify-between"><span class="text-orange-600">Repair:</span><span id="stat-desktops-repair" class="font-medium text-orange-600">0</span></div></div></div>
             <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-indigo-100 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div><div><p class="text-sm text-gray-500">Total Laptops</p><p id="stat-total-laptops" class="text-2xl font-bold text-gray-900">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t mt-2"><span class="text-green-600">Active:</span><span id="stat-laptops-active" class="font-medium text-green-600">0</span></div><div class="flex justify-between"><span class="text-yellow-600">On Loan:</span><span id="stat-laptops-on-loan" class="font-medium text-yellow-600">0</span></div><div class="flex justify-between"><span class="text-orange-600">Repair:</span><span id="stat-laptops-repair" class="font-medium text-orange-600">0</span></div></div></div>
@@ -81,6 +86,7 @@
                 <form id="loanForm" class="space-y-4">
                     <div><label class="block text-sm font-medium text-gray-700">ชื่อผู้ยืม</label><input type="text" id="borrowerName" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
                     <div><label class="block text-sm font-medium text-gray-700">กำหนดคืน</label><input type="date" id="dueDate" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">หมายเหตุ</label><textarea id="loanNotes" rows="2" class="mt-1 block w-full px-3 py-2 border rounded-md"></textarea></div>
                     <button type="button" onclick="submitLoan()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg">ยืนยันการยืม</button>
                 </form>
             </div>
@@ -90,7 +96,7 @@
       <!-- Loan History Page -->
        <div id="loanhistory-page" class="page-content">
         <div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-bold text-gray-900">ประวัติการยืม-คืน</h2></div>
-        <div class="mb-4"><input type="text" onkeyup="filterTable('LoanHistoryTable', this.value)" placeholder="Search by borrower..." class="w-full md:w-1/3 px-4 py-2 border rounded-lg"></div>
+        <div class="mb-4"><input type="text" onkeyup="filterTable('LoanHistoryTable', this.value)" placeholder="Search by borrower, serial, etc..." class="w-full md:w-1/3 px-4 py-2 border rounded-lg"></div>
         <div class="bg-white rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="LoanHistoryTable" class="min-w-full"></table></div></div>
       </div>
 
@@ -105,7 +111,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc, writeBatch, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc, writeBatch, serverTimestamp, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew", authDomain: "inventory-eedef.firebaseapp.com", projectId: "inventory-eedef", storageBucket: "inventory-eedef.appspot.com", messagingSenderId: "1089383656081", appId: "1:1089383656081:web:bb8e8237a701f356102d30" };
     const app = initializeApp(firebaseConfig);
@@ -160,7 +166,7 @@
         const table = document.getElementById('LoanHistoryTable');
         if (!table) return;
         table.innerHTML = '';
-        const headers = ['Borrower', 'Loan Date', 'Due Date', 'Status', 'Items'];
+        const headers = ['Transaction ID', 'Borrower', 'Device Serial', 'Device Type', 'Loan Date', 'Return Date', 'Status'];
         const thead = document.createElement('thead');
         thead.className = 'bg-gray-50';
         thead.innerHTML = `<tr>${headers.map(h => `<th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">${h}</th>`).join('')}</tr>`;
@@ -171,21 +177,21 @@
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-gray-500" colspan="${headers.length}">No loan history found.</td></tr>`;
         } else {
-            // Sort by loanDate descending
-            const sortedData = data.sort((a, b) => b.loanDate?.toDate() - a.loanDate?.toDate());
+            const sortedData = data.sort((a, b) => b.LoanDate?.toDate() - a.LoanDate?.toDate());
             sortedData.forEach(loan => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50 transition-colors";
-                const loanDate = loan.loanDate ? loan.loanDate.toDate().toLocaleDateString('th-TH') : 'N/A';
-                const dueDate = loan.dueDate ? loan.dueDate.toDate().toLocaleDateString('th-TH') : 'N/A';
-                const statusColor = loan.status === 'On Loan' ? 'text-yellow-600' : 'text-green-600';
-                const itemsHtml = loan.items.map(item => `<div>${item.name}</div>`).join('');
+                const loanDate = loan.LoanDate ? loan.LoanDate.toDate().toLocaleDateString('th-TH') : 'N/A';
+                const returnDate = loan.ReturnDate ? loan.ReturnDate.toDate().toLocaleDateString('th-TH') : '';
+                const statusColor = loan.Status === 'On Loan' ? 'text-yellow-600' : 'text-green-600';
                 tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${loan.borrowerName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${loan.TransactionID}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${loan.BorrowerName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${loan.DeviceSerial}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${loan.DeviceType}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${loanDate}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${dueDate}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${statusColor}">${loan.status}</td>
-                    <td class="px-6 py-4 text-sm text-gray-700">${itemsHtml}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${returnDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${statusColor}">${loan.Status}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -287,10 +293,14 @@
     };
     
     async function handleScannedCode(code) {
-        const loanRef = doc(db, "LoanHistory", code);
-        const loanSnap = await getDoc(loanRef);
-        if (loanSnap.exists()) showReturnModal(loanSnap.id, loanSnap.data());
-        else findDeviceBySerialAndAddToCart(code);
+        const q = query(collection(db, "LoanHistory"), where("LoanGroupID", "==", code));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const loanItems = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            showReturnModal(code, loanItems);
+        } else {
+            findDeviceBySerialAndAddToCart(code);
+        }
     }
 
     function findDeviceBySerialAndAddToCart(serial) {
@@ -329,26 +339,46 @@
     window.submitLoan = async () => {
         const borrowerName = document.getElementById('borrowerName').value;
         const dueDate = document.getElementById('dueDate').value;
+        const notes = document.getElementById('loanNotes').value;
         if (!borrowerName || !dueDate || cartItems.length === 0) return alert('Please fill all fields and add items.');
         
+        const loanGroupId = `GRP-${Date.now()}`;
+        const batch = writeBatch(db);
+
+        cartItems.forEach(item => {
+            const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+            const loanDocRef = doc(db, "LoanHistory", transactionId);
+            const loanData = {
+                LoanGroupID: loanGroupId,
+                TransactionID: transactionId,
+                DeviceSerial: item[collectionConfigs[item.collection].serialField],
+                DeviceType: item.collection,
+                BorrowerName: borrowerName,
+                LoanDate: serverTimestamp(),
+                DueDate: new Date(dueDate),
+                ReturnDate: null,
+                Status: 'On Loan',
+                Notes: notes || ""
+            };
+            batch.set(loanDocRef, loanData);
+            const itemRef = doc(db, item.collection, item.id);
+            batch.update(itemRef, { Status: 'On Loan' });
+        });
+
         try {
-            const loanDetails = { borrowerName, dueDate: new Date(dueDate), loanDate: serverTimestamp(), status: 'On Loan', items: cartItems.map(i => ({ id: i.id, collection: i.collection, name: i.ComputerName || i.Model || i.ItemName })) };
-            const docRef = await addDoc(collection(db, "LoanHistory"), loanDetails);
-            const batch = writeBatch(db);
-            cartItems.forEach(item => batch.update(doc(db, item.collection, item.id), { Status: 'On Loan' }));
             await batch.commit();
-            showLoanReceipt(docRef.id, { borrowerName, dueDate, items: cartItems });
+            showLoanReceipt(loanGroupId, { borrowerName, dueDate, items: cartItems });
             cartItems = [];
             renderCart();
             document.getElementById('loanForm').reset();
         } catch (error) { console.error("Error:", error); alert('Failed to submit loan.'); }
     };
     
-    function showLoanReceipt(loanId, loanDetails) {
+    function showLoanReceipt(loanGroupId, loanDetails) {
         const modal = document.getElementById('receiptModal');
         const canvas = document.getElementById('receiptQrCanvas');
         const detailsDiv = document.getElementById('receiptDetails');
-        QRCode.toCanvas(canvas, loanId, { width: 256 });
+        QRCode.toCanvas(canvas, loanGroupId, { width: 256 });
         let detailsHtml = `<p><strong>ผู้ยืม:</strong> ${loanDetails.borrowerName}</p><p><strong>กำหนดคืน:</strong> ${loanDetails.dueDate}</p><h4 class="font-semibold mt-4 mb-2">รายการ:</h4><ul class="list-disc list-inside">`;
         loanDetails.items.forEach(item => { detailsHtml += `<li>${item.ComputerName || item.Model || item.ItemName}</li>`; });
         detailsHtml += `</ul>`;
@@ -356,36 +386,34 @@
         modal.classList.remove('opacity-0', 'pointer-events-none');
     }
 
-    function showReturnModal(loanId, loanData) {
+    function showReturnModal(loanGroupId, loanItems) {
         const modal = document.getElementById('returnModal');
-        document.getElementById('returnDetails').innerHTML = `<p><strong>ผู้ยืม:</strong> ${loanData.borrowerName}</p><p><strong>สถานะ:</strong> <span class="font-semibold ${loanData.status === 'On Loan' ? 'text-yellow-600' : 'text-green-600'}">${loanData.status}</span></p>`;
+        const firstItem = loanItems[0];
+        document.getElementById('returnDetails').innerHTML = `<p><strong>Loan Group ID:</strong> ${loanGroupId}</p><p><strong>ผู้ยืม:</strong> ${firstItem.BorrowerName}</p>`;
         const itemsList = document.getElementById('return-items-list');
         itemsList.innerHTML = '';
-        loanData.items.forEach(item => {
-            const isReturned = allData[item.collection]?.find(d => d.id === item.id)?.Status !== 'On Loan';
+        loanItems.forEach(item => {
+            const device = allData[item.DeviceType]?.find(d => d[collectionConfigs[item.DeviceType].serialField] === item.DeviceSerial);
+            const deviceName = device?.[collectionConfigs[item.DeviceType].nameField] || item.DeviceSerial;
+            const isReturned = item.Status === 'Returned';
             let buttonHtml = isReturned 
                 ? `<span class="text-sm text-gray-500 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
-                : `<button onclick="processReturn('${loanId}', '${item.id}', '${item.collection}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
-            itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b"><p>${item.name}</p>${buttonHtml}</div>`;
+                : `<button onclick="processReturn('${item.TransactionID}', '${item.DeviceSerial}', '${item.DeviceType}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
+            itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b"><p>${deviceName}</p>${buttonHtml}</div>`;
         });
         modal.classList.remove('opacity-0', 'pointer-events-none');
     }
 
-    window.processReturn = async (loanId, itemId, itemCollection) => {
+    window.processReturn = async (transactionId, deviceSerial, deviceType) => {
         if (!confirm('Confirm return of this item?')) return;
         try {
             const batch = writeBatch(db);
-            const itemRef = doc(db, itemCollection, itemId);
-            batch.update(itemRef, { Status: 'Active' });
-            const loan = allData.LoanHistory.find(l => l.id === loanId);
-            const allReturned = loan.items.every(item => {
-                if (item.id === itemId) return true;
-                const device = allData[item.collection]?.find(d => d.id === item.id);
-                return device?.Status !== 'On Loan';
-            });
-            if (allReturned) {
-                const loanRef = doc(db, "LoanHistory", loanId);
-                batch.update(loanRef, { status: 'Returned' });
+            const transactionRef = doc(db, "LoanHistory", transactionId);
+            batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
+            const device = allData[deviceType]?.find(d => d[collectionConfigs[deviceType].serialField] === deviceSerial);
+            if (device) {
+                const deviceRef = doc(db, deviceType, device.id);
+                batch.update(deviceRef, { Status: 'Active' });
             }
             await batch.commit();
             alert('Item returned successfully!');
@@ -403,8 +431,12 @@
             console.error(`Error listening to ${collectionName}: `, error);
             if (config.isInventory) {
                 let msg = `Error fetching data.`;
-                if (error.code === 'permission-denied') msg = `Permission Denied. Check Firestore Rules.`;
+                if (error.code === 'permission-denied') msg = `Permission Denied for '${collectionName}'. Check Firestore Rules.`;
                 buildTable(collectionName, [], msg);
+            } else if (collectionName === 'LoanHistory') {
+                 let msg = `Error fetching data.`;
+                 if (error.code === 'permission-denied') msg = `Permission Denied for '${collectionName}'. Check Firestore Rules.`;
+                 buildLoanHistoryTable([], msg);
             }
         });
     }
@@ -428,9 +460,24 @@
         document.getElementById('stat-monitors-repair').textContent = monitors.filter(m => m.Status === 'Repair').length;
         document.getElementById('stat-total-audio').textContent = (allData['Audio'] || []).length;
     }
+    
+    window.resetAllStatusToActive = async function() {
+        if (!confirm('Are you sure you want to reset the status of ALL devices to "Active"? This action cannot be undone.')) return;
+        alert('Updating statuses... This may take a moment.');
+        try {
+            const batch = writeBatch(db);
+            for (const collectionName in collectionConfigs) {
+                allData[collectionName].forEach(item => {
+                    const docRef = doc(db, collectionName, item.id);
+                    batch.update(docRef, { Status: 'Active' });
+                });
+            }
+            await batch.commit();
+            alert('All device statuses have been successfully reset to "Active".');
+        } catch (error) { console.error("Error:", error); alert("An error occurred."); }
+    }
 
     window.addEventListener('load', () => {
-        // Make sure to listen to the correctly cased collection names
         listenToCollection('Computers', { isInventory: true });
         listenToCollection('Monitors', { isInventory: true });
         listenToCollection('Audio', { isInventory: true });

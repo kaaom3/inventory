@@ -43,10 +43,7 @@
 
     <!-- Sidebar Navigation -->
     <nav id="sidebar" class="w-64 bg-white border-r border-gray-200 p-5 flex flex-col flex-shrink-0 fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 z-30">
-        <div class="flex items-center space-x-3 mb-10">
-            <i class="fas fa-cubes text-2xl text-indigo-600"></i>
-            <h1 class="text-xl font-bold text-gray-800">Inventory</h1>
-        </div>
+        <div class="flex items-center space-x-3 mb-10"><i class="fas fa-cubes text-2xl text-indigo-600"></i><h1 class="text-xl font-bold text-gray-800">Inventory</h1></div>
         <ul class="space-y-2">
             <li><a href="#" id="nav-dashboard" onclick="loadPage('Dashboard', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-tachometer-alt w-5 text-center"></i><span>Dashboard</span></a></li>
             <li><a href="#" id="nav-computers" onclick="loadPage('Computers', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-laptop w-5 text-center"></i><span>Computers</span></a></li>
@@ -129,6 +126,7 @@
   <div id="qrModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 text-center"><h3 id="qrModalTitle" class="text-xl font-semibold mb-4"></h3><canvas id="qrCanvas" class="mx-auto"></canvas><button onclick="hideModal('qrModal')" class="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg">Close</button></div></div>
   <div id="receiptModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md text-center"><h3 class="text-2xl font-bold text-green-600 mb-2">ยืมสำเร็จ!</h3><p class="text-gray-600 mb-6">กรุณาบันทึก QR Code นี้สำหรับคืนอุปกรณ์</p><canvas id="receiptQrCanvas" class="mx-auto border rounded-lg"></canvas><div id="receiptDetails" class="text-left mt-6 text-sm"></div><button onclick="hideModal('receiptModal')" class="mt-8 px-6 py-2 bg-indigo-600 text-white rounded-lg w-full">Close</button></div></div>
   <div id="returnModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 class="text-xl font-semibold mb-4">คืนอุปกรณ์</h3><div id="returnDetails" class="text-sm mb-4 border-b pb-4"></div><h4 class="text-lg font-semibold text-gray-700 mb-3">รายการที่ยืม:</h4><div id="return-items-list" class="space-y-3"></div><div class="mt-6 flex justify-end"><button onclick="hideModal('returnModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button></div></div></div>
+  <div id="deviceDetailModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 id="deviceDetailTitle" class="text-2xl font-bold text-gray-800 mb-6">Device Details</h3><div id="deviceDetailContent" class="space-y-2 border-t border-b py-4"></div><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('deviceDetailModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button><button id="addToCartButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add to Cart</button></div></div></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -169,8 +167,7 @@
         document.getElementById(pageName.toLowerCase() + '-page').style.display = 'block';
         if (pageName === 'Loan') populateCategories();
 
-        // Close mobile nav on page change
-        if (window.innerWidth < 768) { // md breakpoint
+        if (window.innerWidth < 768) {
             toggleMobileNav();
         }
     };
@@ -205,7 +202,7 @@
         const table = document.getElementById('LoanHistoryTable');
         if (!table) return;
         table.innerHTML = '';
-        const headers = ['Transaction ID', 'Borrower', 'Device Serial', 'Device Type', 'Loan Date', 'Return Date', 'Status'];
+        const headers = ['Borrower', 'Device Serial', 'Loan Date', 'Return Date', 'Status', 'Actions'];
         const thead = document.createElement('thead');
         thead.className = 'bg-gray-50';
         thead.innerHTML = `<tr>${headers.map(h => `<th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">${h}</th>`).join('')}</tr>`;
@@ -234,14 +231,18 @@
                 const returnDate = loan.ReturnDate && !isNaN(returnDateObj) ? returnDateObj.toLocaleDateString('th-TH') : '';
 
                 const statusColor = loan.Status === 'On Loan' ? 'text-yellow-600' : 'text-green-600';
+                
+                const actionButton = loan.Status === 'On Loan' 
+                    ? `<button onclick="showQrModal('${loan.LoanGroupID}', 'Return QR for ${loan.BorrowerName}')" class="text-gray-500 hover:text-gray-800"><i class="fas fa-qrcode"></i></button>`
+                    : '';
+
                 tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${loan.TransactionID}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${loan.BorrowerName}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${loan.DeviceSerial}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${loan.DeviceType}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${loanDate}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${returnDate}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${statusColor}">${loan.Status}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${actionButton}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -283,9 +284,9 @@
         if (confirm(`Are you sure?`)) try { await deleteDoc(doc(db, collectionName, id)); } catch (error) { console.error("Error:", error); alert("Failed to delete."); }
     };
 
-    window.showQrModal = (serialNumber, name) => {
+    window.showQrModal = (data, name) => {
         document.getElementById('qrModalTitle').textContent = `QR Code for ${name}`;
-        QRCode.toCanvas(document.getElementById('qrCanvas'), serialNumber, { width: 256 });
+        QRCode.toCanvas(document.getElementById('qrCanvas'), data, { width: 256 });
         document.getElementById('qrModal').classList.remove('opacity-0', 'pointer-events-none');
     };
 
@@ -349,16 +350,45 @@
             const loanItems = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             showReturnModal(code, loanItems);
         } else {
-            findDeviceBySerialAndAddToCart(code);
+            const deviceResult = findDeviceBySerial(code);
+            if (deviceResult) {
+                showDeviceDetails(deviceResult.item, deviceResult.collectionName);
+            } else {
+                alert(`Device with Serial Number ${code} not found.`);
+            }
         }
     }
 
-    function findDeviceBySerialAndAddToCart(serial) {
+    function findDeviceBySerial(serial) {
         for (const cName in collectionConfigs) {
             const item = allData[cName]?.find(i => i[collectionConfigs[cName].serialField] === serial);
-            if (item) { addDeviceToCart(cName, item.id); return; }
+            if (item) {
+                return { item, collectionName: cName };
+            }
         }
-        alert(`Device with SN ${serial} not found.`);
+        return null;
+    }
+
+    function showDeviceDetails(item, collectionName) {
+        const modal = document.getElementById('deviceDetailModal');
+        const title = document.getElementById('deviceDetailTitle');
+        const content = document.getElementById('deviceDetailContent');
+        const addToCartBtn = document.getElementById('addToCartButton');
+
+        title.textContent = item[collectionConfigs[collectionName].nameField] || 'Device Details';
+        
+        content.innerHTML = '';
+        const headers = collectionConfigs[collectionName].headers;
+        headers.forEach(header => {
+            content.innerHTML += `<div class="flex justify-between border-b py-2"><span class="text-gray-500">${header}</span><span class="font-semibold text-gray-800">${item[header] || 'N/A'}</span></div>`;
+        });
+
+        addToCartBtn.onclick = () => {
+            addDeviceToCart(collectionName, item.id);
+            hideModal('deviceDetailModal');
+        };
+
+        modal.classList.remove('opacity-0', 'pointer-events-none');
     }
 
     function addDeviceToCart(collectionName, id) {

@@ -811,21 +811,6 @@
         document.getElementById('stat-total-monitors').textContent = monitors.length;
         document.getElementById('stat-total-audio').textContent = audio.length;
         document.getElementById('stat-total-onloan').textContent = allDevices.filter(d => d.Status === 'On Loan').length;
-
-        const desktops = computers.filter(c => c.Type === 'Desktop');
-        const laptops = computers.filter(c => c.Type === 'Laptop');
-        document.getElementById('stat-total-desktops').textContent = desktops.length;
-        document.getElementById('stat-desktops-active').textContent = desktops.filter(d => d.Status === 'Active').length;
-        document.getElementById('stat-desktops-on-loan').textContent = desktops.filter(d => d.Status === 'On Loan').length;
-        document.getElementById('stat-desktops-repair').textContent = desktops.filter(d => d.Status === 'Repair').length;
-        document.getElementById('stat-total-laptops').textContent = laptops.length;
-        document.getElementById('stat-laptops-active').textContent = laptops.filter(l => l.Status === 'Active').length;
-        document.getElementById('stat-laptops-on-loan').textContent = laptops.filter(l => l.Status === 'On Loan').length;
-        document.getElementById('stat-laptops-repair').textContent = laptops.filter(l => l.Status === 'Repair').length;
-        
-        document.getElementById('stat-monitors-active').textContent = monitors.filter(m => m.Status === 'Active').length;
-        document.getElementById('stat-monitors-on-loan').textContent = monitors.filter(m => m.Status === 'On Loan').length;
-        document.getElementById('stat-monitors-repair').textContent = monitors.filter(m => m.Status === 'Repair').length;
         
         const statusCounts = allDevices.reduce((acc, device) => {
             if(device.Status) {

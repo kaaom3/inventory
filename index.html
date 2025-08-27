@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: 'Inter', sans-serif; }
     .page-content { display: none; }
@@ -70,11 +71,36 @@
                 <i class="fas fa-sync-alt mr-2"></i>Reset All Status
             </button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-blue-100 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500">Total Desktops</p><p id="stat-total-desktops" class="text-2xl font-bold text-gray-900">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t mt-2"><span class="text-green-600">Active:</span><span id="stat-desktops-active" class="font-medium text-green-600">0</span></div><div class="flex justify-between"><span class="text-yellow-600">On Loan:</span><span id="stat-desktops-on-loan" class="font-medium text-yellow-600">0</span></div><div class="flex justify-between"><span class="text-orange-600">Repair:</span><span id="stat-desktops-repair" class="font-medium text-orange-600">0</span></div></div></div>
-            <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-indigo-100 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div><div><p class="text-sm text-gray-500">Total Laptops</p><p id="stat-total-laptops" class="text-2xl font-bold text-gray-900">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t mt-2"><span class="text-green-600">Active:</span><span id="stat-laptops-active" class="font-medium text-green-600">0</span></div><div class="flex justify-between"><span class="text-yellow-600">On Loan:</span><span id="stat-laptops-on-loan" class="font-medium text-yellow-600">0</span></div><div class="flex justify-between"><span class="text-orange-600">Repair:</span><span id="stat-laptops-repair" class="font-medium text-orange-600">0</span></div></div></div>
-            <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-green-100 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500">Total Monitors</p><p id="stat-total-monitors" class="text-2xl font-bold text-gray-900">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t mt-2"><span class="text-green-600">Active:</span><span id="stat-monitors-active" class="font-medium text-green-600">0</span></div><div class="flex justify-between"><span class="text-yellow-600">On Loan:</span><span id="stat-monitors-on-loan" class="font-medium text-yellow-600">0</span></div><div class="flex justify-between"><span class="text-orange-600">Repair:</span><span id="stat-monitors-repair" class="font-medium text-orange-600">0</span></div></div></div>
-            <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-red-100 p-3 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div><div><p class="text-sm text-gray-500">Total Audio Devices</p><p id="stat-total-audio" class="text-2xl font-bold text-gray-900">0</p></div></div></div>
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-blue-100 p-4 rounded-full"><i class="fas fa-laptop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500">Total Computers</p><p id="stat-total-computers" class="text-2xl font-bold text-gray-900">0</p></div></div>
+            <div class="bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-green-100 p-4 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500">Total Monitors</p><p id="stat-total-monitors" class="text-2xl font-bold text-gray-900">0</p></div></div>
+            <div class="bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-red-100 p-4 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div><div><p class="text-sm text-gray-500">Total Audio</p><p id="stat-total-audio" class="text-2xl font-bold text-gray-900">0</p></div></div>
+            <div class="bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-yellow-100 p-4 rounded-full"><i class="fas fa-exchange-alt text-2xl text-yellow-500"></i></div><div><p class="text-sm text-gray-500">Devices On Loan</p><p id="stat-total-onloan" class="text-2xl font-bold text-gray-900">0</p></div></div>
+        </div>
+        <!-- Charts and Recent Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-sm">
+                <h3 class="font-semibold text-lg mb-4">Device Status</h3>
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
+                 <h3 class="font-semibold text-lg mb-4">Recent Loan Activity</h3>
+                 <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Borrower</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-loans-table" class="divide-y divide-gray-200">
+                            <!-- Recent loans will be inserted here -->
+                        </tbody>
+                    </table>
+                 </div>
+            </div>
         </div>
       </div>
 
@@ -132,7 +158,7 @@
   <div id="editModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md"><h3 id="editModalTitle" class="text-xl font-semibold mb-6"></h3><form id="editForm" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></form><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Cancel</button><button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button></div></div></div>
   <div id="qrModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 text-center"><h3 id="qrModalTitle" class="text-xl font-semibold mb-4"></h3><canvas id="qrCanvas" class="mx-auto"></canvas><button onclick="hideModal('qrModal')" class="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg">Close</button></div></div>
   <div id="receiptModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md text-center"><h3 class="text-2xl font-bold text-green-600 mb-2">ยืมสำเร็จ!</h3><p class="text-gray-600 mb-6">กรุณาบันทึก QR Code นี้สำหรับคืนอุปกรณ์</p><canvas id="receiptQrCanvas" class="mx-auto border rounded-lg"></canvas><div id="receiptDetails" class="text-left mt-6 text-sm"></div><button onclick="hideModal('receiptModal')" class="mt-8 px-6 py-2 bg-indigo-600 text-white rounded-lg w-full">Close</button></div></div>
-  <div id="returnModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 class="text-xl font-semibold mb-4">คืนอุปกรณ์</h3><div id="returnDetails" class="text-sm mb-4 border-b pb-4"></div><h4 class="text-lg font-semibold text-gray-700 mb-3">รายการที่ยืม:</h4><div id="return-items-list" class="space-y-3"></div><div class="mt-6 flex justify-end"><button onclick="hideModal('returnModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button></div></div></div>
+  <div id="returnModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 class="text-xl font-semibold mb-4">คืนอุปกรณ์</h3><div id="returnDetails" class="text-sm mb-4 border-b pb-4"></div><h4 class="text-lg font-semibold text-gray-700 mb-3">รายการที่ยืม:</h4><div id="return-items-list" class="space-y-3"></div><div id="return-actions" class="mt-6 flex justify-end space-x-3"></div></div></div>
   <div id="deviceDetailModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 id="deviceDetailTitle" class="text-2xl font-bold text-gray-800 mb-6">Device Details</h3><div id="deviceDetailContent" class="space-y-2 border-t border-b py-4"></div><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('deviceDetailModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button><button id="addToCartButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add to Cart</button></div></div></div>
 
   <script type="module">
@@ -147,6 +173,7 @@
     let currentEdit = { mode: null, collection: null, id: null };
     let cartItems = [];
     let html5QrCode;
+    let statusChart;
 
     const collectionConfigs = {
         Computers: { 
@@ -681,16 +708,27 @@
         const firstItem = loanItems[0];
         document.getElementById('returnDetails').innerHTML = `<p><strong>Loan Group ID:</strong> ${loanGroupId}</p><p><strong>ผู้ยืม:</strong> ${firstItem.BorrowerName}</p>`;
         const itemsList = document.getElementById('return-items-list');
+        const actionsDiv = document.getElementById('return-actions');
         itemsList.innerHTML = '';
+        actionsDiv.innerHTML = '<button onclick="hideModal(\'returnModal\')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button>';
+        
+        let hasItemsToReturn = false;
         loanItems.forEach(item => {
             const device = allData[item.DeviceType]?.find(d => d[collectionConfigs[item.DeviceType].serialField] === item.DeviceSerial);
             const deviceName = device?.[collectionConfigs[item.DeviceType].nameField] || item.DeviceSerial;
             const isReturned = item.Status === 'Returned';
+            if (!isReturned) hasItemsToReturn = true;
+
             let buttonHtml = isReturned 
                 ? `<span class="text-sm text-gray-500 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
                 : `<button onclick="processReturn('${item.TransactionID}', '${item.DeviceSerial}', '${item.DeviceType}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
             itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b"><p>${deviceName}</p>${buttonHtml}</div>`;
         });
+
+        if (hasItemsToReturn) {
+            actionsDiv.insertAdjacentHTML('afterbegin', `<button onclick="processReturnAll()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Return All</button>`);
+        }
+
         modal.classList.remove('opacity-0', 'pointer-events-none');
     }
 
@@ -710,6 +748,37 @@
             hideModal('returnModal');
         } catch (error) { console.error("Error:", error); alert('Failed to return item.'); }
     }
+    
+    window.processReturnAll = async () => {
+        const loanGroupId = document.getElementById('returnDetails').querySelector('p').textContent.split(': ')[1];
+        const loanItems = allData.LoanHistory.filter(item => item.LoanGroupID === loanGroupId);
+        const itemsToReturn = loanItems.filter(item => item.Status === 'On Loan');
+        if (itemsToReturn.length === 0) {
+            alert("All items have already been returned.");
+            return;
+        }
+        if (!confirm(`Are you sure you want to return all ${itemsToReturn.length} remaining items?`)) return;
+
+        try {
+            const batch = writeBatch(db);
+            for (const item of itemsToReturn) {
+                const transactionRef = doc(db, "LoanHistory", item.id);
+                batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
+                const device = allData[item.DeviceType]?.find(d => d[collectionConfigs[item.DeviceType].serialField] === item.DeviceSerial);
+                if (device) {
+                    const deviceRef = doc(db, item.DeviceType, device.id);
+                    batch.update(deviceRef, { Status: 'Active' });
+                }
+            }
+            await batch.commit();
+            alert('All items returned successfully!');
+            hideModal('returnModal');
+        } catch (error) {
+            console.error("Error returning all items: ", error);
+            alert('Failed to return all items.');
+        }
+    }
+
 
     function listenToCollection(collectionName, config) {
         onSnapshot(collection(db, collectionName), (snapshot) => {
@@ -734,6 +803,15 @@
     
     function updateDashboard() {
         const computers = allData['Computers'] || [];
+        const monitors = allData['Monitors'] || [];
+        const audio = allData['Audio'] || [];
+        const allDevices = [...computers, ...monitors, ...audio];
+        
+        document.getElementById('stat-total-computers').textContent = computers.length;
+        document.getElementById('stat-total-monitors').textContent = monitors.length;
+        document.getElementById('stat-total-audio').textContent = audio.length;
+        document.getElementById('stat-total-onloan').textContent = allDevices.filter(d => d.Status === 'On Loan').length;
+
         const desktops = computers.filter(c => c.Type === 'Desktop');
         const laptops = computers.filter(c => c.Type === 'Laptop');
         document.getElementById('stat-total-desktops').textContent = desktops.length;
@@ -744,14 +822,92 @@
         document.getElementById('stat-laptops-active').textContent = laptops.filter(l => l.Status === 'Active').length;
         document.getElementById('stat-laptops-on-loan').textContent = laptops.filter(l => l.Status === 'On Loan').length;
         document.getElementById('stat-laptops-repair').textContent = laptops.filter(l => l.Status === 'Repair').length;
-        const monitors = allData['Monitors'] || [];
-        document.getElementById('stat-total-monitors').textContent = monitors.length;
+        
         document.getElementById('stat-monitors-active').textContent = monitors.filter(m => m.Status === 'Active').length;
         document.getElementById('stat-monitors-on-loan').textContent = monitors.filter(m => m.Status === 'On Loan').length;
         document.getElementById('stat-monitors-repair').textContent = monitors.filter(m => m.Status === 'Repair').length;
-        document.getElementById('stat-total-audio').textContent = (allData['Audio'] || []).length;
+        
+        const statusCounts = allDevices.reduce((acc, device) => {
+            if(device.Status) {
+               acc[device.Status] = (acc[device.Status] || 0) + 1;
+            }
+            return acc;
+        }, {});
+        
+        renderStatusChart(statusCounts);
+
+        const recentLoans = (allData['LoanHistory'] || [])
+            .sort((a, b) => {
+                const dateA = a.LoanDate?.toDate ? a.LoanDate.toDate() : new Date(a.LoanDate || 0);
+                const dateB = b.LoanDate?.toDate ? b.LoanDate.toDate() : new Date(b.LoanDate || 0);
+                return dateB - dateA;
+            })
+            .slice(0, 5);
+        renderRecentLoans(recentLoans);
     }
     
+    function renderStatusChart(statusData) {
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        const labels = Object.keys(statusData);
+        const data = Object.values(statusData);
+
+        if (statusChart) {
+            statusChart.data.labels = labels;
+            statusChart.data.datasets[0].data = data;
+            statusChart.update();
+        } else {
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Device Status',
+                        data: data,
+                        backgroundColor: [
+                            '#22C55E', // green-500 for Active
+                            '#F59E0B', // amber-500 for On Loan
+                            '#F97316', // orange-500 for Repair
+                            '#3B82F6', // blue-500 for Storage
+                            '#EF4444', // red-500 for Damaged
+                            '#6B7280'  // gray-500 for Disposed
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function renderRecentLoans(loans) {
+        const tbody = document.getElementById('recent-loans-table');
+        tbody.innerHTML = '';
+        if (loans.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-gray-500 py-4">No recent activity</td></tr>`;
+            return;
+        }
+        loans.forEach(loan => {
+            const loanDateObj = loan.LoanDate?.toDate ? loan.LoanDate.toDate() : new Date(loan.LoanDate || null);
+            const loanDate = !isNaN(loanDateObj) ? loanDateObj.toLocaleDateString('th-TH') : 'N/A';
+            const statusColor = loan.Status === 'On Loan' ? 'text-yellow-600' : 'text-green-600';
+            tbody.innerHTML += `
+                <tr class="text-sm">
+                    <td class="px-4 py-2 font-medium text-gray-800">${loan.BorrowerName}</td>
+                    <td class="px-4 py-2 text-gray-600">${loanDate}</td>
+                    <td class="px-4 py-2 font-semibold ${statusColor}">${loan.Status}</td>
+                </tr>
+            `;
+        });
+    }
+
     window.resetAllStatusToActive = async function() {
         if (!confirm('Are you sure you want to reset the status of ALL devices to "Active"? This action cannot be undone.')) return;
         alert('Updating statuses... This may take a moment.');

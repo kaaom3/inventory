@@ -150,7 +150,7 @@
 
     const collectionConfigs = {
         Computers: { 
-            headers: ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location'], 
+            headers: ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyEndDate'], 
             nameField: 'ComputerName', 
             serialField: 'SerialNumber', 
             icon: 'fa-laptop',
@@ -160,7 +160,7 @@
             }
         },
         Monitors: { 
-            headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status'], 
+            headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status', 'WarrantyEndDate'], 
             nameField: 'Model', 
             serialField: 'MonitorSerial', 
             icon: 'fa-desktop',
@@ -169,7 +169,7 @@
             }
         },
         Audio: { 
-            headers: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status'], 
+            headers: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'WarrantyEndDate'], 
             nameField: 'ItemName', 
             serialField: 'SerialNumber', 
             icon: 'fa-volume-up',
@@ -407,6 +407,8 @@
                     fieldHtml += `<a href="#" data-value="${loc.LocationName}" class="location-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">${loc.LocationName}</a>`;
                 });
                 fieldHtml += `</div></div>`;
+            } else if (header.toLowerCase().includes('date')) {
+                fieldHtml += `<input type="date" name="${header}" value="${value}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white">`;
             } else if (dropdowns && dropdowns[header]) {
                 const options = dropdowns[header];
                 fieldHtml += `<select name="${header}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white">`;

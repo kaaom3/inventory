@@ -51,7 +51,7 @@
             <li><a href="#" id="nav-audio" onclick="loadPage('Audio', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-volume-up w-5 text-center"></i><span>Audio</span></a></li>
             <li><a href="#" id="nav-software" onclick="loadPage('Software', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-cogs w-5 text-center"></i><span>Software</span></a></li>
             <li class="pt-4"><div class="px-4 text-xs font-semibold uppercase text-gray-400">Management</div></li>
-            <li><a href="#" id="nav-loan" onclick="loadPage('Loan', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-exchange-alt w-5 text-center"></i><span>ยืม-คืน</span></a></li>
+            <li><a href="loan.html" target="_blank" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-exchange-alt w-5 text-center"></i><span>หน้ายืม-คืน (User)</span></a></li>
             <li><a href="#" id="nav-loanhistory" onclick="loadPage('LoanHistory', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600"><i class="fas fa-history w-5 text-center"></i><span>ประวัติการยืม</span></a></li>
         </ul>
     </nav>
@@ -116,34 +116,6 @@
         <div id="SoftwareContainer" class="space-y-3"></div>
       </div>
 
-      <!-- Loan Page -->
-      <div id="loan-page" class="page-content">
-        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">ยืม-คืน อุปกรณ์</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div class="lg:col-span-3 bg-white rounded-xl shadow-md p-6 space-y-4">
-                <div class="mb-4 border-b border-gray-200"><nav class="flex -mb-px space-x-4"><button onclick="switchLoanTab('scan', this)" class="tab-button active flex items-center whitespace-nowrap py-3 px-2 border-b-2 font-medium text-sm"><i class="fas fa-camera mr-2"></i>สแกน QR Code</button><button onclick="switchLoanTab('select', this)" class="tab-button flex items-center whitespace-nowrap py-3 px-2 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700"><i class="fas fa-list-ul mr-2"></i>เลือกจากรายการ</button></nav></div>
-                <div id="scan-view">
-                    <div id="qr-reader" class="w-full max-w-sm mx-auto mb-2"></div>
-                    <button id="start-scan-button" onclick="startScanning()" class="w-full mt-2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 flex items-center justify-center"><i class="fas fa-camera mr-2"></i>เริ่มการสแกน</button>
-                </div>
-                <div id="select-view" class="hidden space-y-6">
-                    <div id="category-selection"></div>
-                    <div id="device-list-view" class="hidden"><button onclick="showCategorySelection()" class="mb-4 text-sm text-blue-600 hover:underline"><i class="fas fa-arrow-left mr-2"></i>ย้อนกลับ</button><div id="device-list-container"></div></div>
-                </div>
-            </div>
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-                <h3 class="text-xl font-bold mb-4 text-gray-800">ตะกร้าการยืม</h3>
-                <div id="cart" class="space-y-2 border p-3 rounded-md min-h-[120px] bg-gray-50 mb-6"><p class="text-sm text-gray-500">ยังไม่มีอุปกรณ์ในตะกร้า</p></div>
-                <form id="loanForm" class="space-y-4">
-                    <div><label class="block text-sm font-medium text-gray-700">ชื่อผู้ยืม</label><input type="text" id="borrowerName" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                    <div><label class="block text-sm font-medium text-gray-700">กำหนดคืน</label><input type="date" id="dueDate" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                    <div><label class="block text-sm font-medium text-gray-700">หมายเหตุ</label><textarea id="loanNotes" rows="2" class="mt-1 block w-full px-3 py-2 border rounded-md"></textarea></div>
-                    <button type="button" onclick="submitLoan()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg">ยืนยันการยืม</button>
-                </form>
-            </div>
-        </div>
-      </div>
-
       <!-- Loan History Page -->
        <div id="loanhistory-page" class="page-content">
         <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900">ประวัติการยืม-คืน</h2></div>
@@ -157,10 +129,7 @@
   <!-- Modals -->
   <div id="editModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md"><h3 id="editModalTitle" class="text-xl font-semibold mb-6"></h3><form id="editForm" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></form><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Cancel</button><button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button></div></div></div>
   <div id="qrModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 text-center"><h3 id="qrModalTitle" class="text-xl font-semibold mb-4"></h3><canvas id="qrCanvas" class="mx-auto"></canvas><button onclick="hideModal('qrModal')" class="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg">Close</button></div></div>
-  <div id="receiptModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md text-center"><h3 class="text-2xl font-bold text-green-600 mb-2">ยืมสำเร็จ!</h3><p class="text-gray-600 mb-6">กรุณาบันทึก QR Code นี้สำหรับคืนอุปกรณ์</p><canvas id="receiptQrCanvas" class="mx-auto border rounded-lg"></canvas><div id="receiptDetails" class="text-left mt-6 text-sm"></div><button onclick="hideModal('receiptModal')" class="mt-8 px-6 py-2 bg-indigo-600 text-white rounded-lg w-full">Close</button></div></div>
-  <div id="returnModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 class="text-xl font-semibold mb-4">คืนอุปกรณ์</h3><div id="returnDetails" class="text-sm mb-4 border-b pb-4"></div><h4 class="text-lg font-semibold text-gray-700 mb-3">รายการที่ยืม:</h4><div id="return-items-list" class="space-y-3"></div><div id="return-actions" class="mt-6 flex justify-end space-x-3"></div></div></div>
-  <div id="deviceDetailModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 id="deviceDetailTitle" class="text-2xl font-bold text-gray-800 mb-6">Device Details</h3><div id="deviceDetailContent" class="space-y-2 border-t border-b py-4"></div><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('deviceDetailModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button><button id="addToCartButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add to Cart</button></div></div></div>
-
+  
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc, writeBatch, serverTimestamp, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -171,8 +140,6 @@
 
     let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Software: [], Location: [] };
     let currentEdit = { mode: null, collection: null, id: null };
-    let cartItems = [];
-    let html5QrCode;
     let statusChart;
 
     const collectionConfigs = {
@@ -224,7 +191,6 @@
         if (navElement) navElement.classList.add('active');
         document.querySelectorAll('.page-content').forEach(page => page.style.display = 'none');
         document.getElementById(pageName.toLowerCase() + '-page').style.display = 'block';
-        if (pageName === 'Loan') populateCategories();
         if (pageName === 'Software') buildSoftwareCards(allData.Software);
 
         if (window.innerWidth < 768) {
@@ -506,279 +472,6 @@
         QRCode.toCanvas(document.getElementById('qrCanvas'), url, { width: 256 });
         document.getElementById('qrModal').classList.remove('opacity-0', 'pointer-events-none');
     };
-
-    window.switchLoanTab = (tabName, btn) => {
-        document.querySelectorAll('#loan-page .tab-button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('scan-view').style.display = tabName === 'scan' ? 'block' : 'none';
-        document.getElementById('select-view').style.display = tabName === 'select' ? 'block' : 'none';
-    };
-
-    function populateCategories() {
-        const container = document.getElementById('category-selection');
-        container.innerHTML = `<h3 class="text-lg font-semibold mb-3 text-gray-700">เลือกหมวดหมู่อุปกรณ์</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
-        for (const key in collectionConfigs) {
-            const config = collectionConfigs[key];
-            const availableItems = allData[key].filter(item => item.Status === 'Active').length;
-            container.firstElementChild.innerHTML += `<div class="border rounded-lg p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 cursor-pointer" onclick="showDeviceCategory('${key}')"><i class="fas ${config.icon} text-4xl text-blue-500 mb-2"></i><p class="font-semibold text-gray-800">${key}</p><p class="text-xs text-gray-500">${availableItems} items available</p></div>`;
-        }
-        container.innerHTML += `</div>`;
-    }
-
-    window.showDeviceCategory = (collectionName) => {
-        document.getElementById('category-selection').style.display = 'none';
-        document.getElementById('device-list-view').style.display = 'block';
-        const container = document.getElementById('device-list-container');
-        container.innerHTML = '';
-        const availableItems = allData[collectionName].filter(item => item.Status === 'Active');
-        if (availableItems.length > 0) {
-            let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
-            availableItems.forEach(item => {
-                const isSelected = cartItems.some(c => c.id === item.id);
-                html += `<div class="device-card border rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 cursor-pointer ${isSelected ? 'selected' : ''}" onclick="toggleCartItem(this, '${collectionName}', '${item.id}')"><i class="fas ${collectionConfigs[collectionName].icon} text-2xl text-gray-400"></i><div class="flex-1"><p class="font-semibold text-sm text-gray-800">${item[collectionConfigs[collectionName].nameField]}</p><p class="text-xs text-gray-500">SN: ${item[collectionConfigs[collectionName].serialField]}</p></div><i class="fas fa-check-circle text-blue-500 text-xl selected-icon"></i></div>`;
-            });
-            container.innerHTML = html + `</div>`;
-        } else container.innerHTML = `<p class="text-sm text-gray-500">No devices available.</p>`;
-    };
-
-    window.showCategorySelection = () => {
-        document.getElementById('category-selection').style.display = 'block';
-        document.getElementById('device-list-view').style.display = 'none';
-    };
-
-    window.toggleCartItem = (cardElement, collectionName, id) => {
-        cardElement.classList.toggle('selected');
-        const isInCart = cartItems.some(c => c.id === id);
-        if (isInCart) cartItems = cartItems.filter(c => c.id !== id);
-        else addDeviceToCart(collectionName, id);
-        renderCart();
-    };
-
-    window.startScanning = () => {
-        document.getElementById('start-scan-button').disabled = true;
-        html5QrCode = new Html5Qrcode("qr-reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, code => handleScannedCode(code));
-    };
-    
-    async function handleScannedCode(code) {
-        try {
-            const url = new URL(code);
-            const path = url.pathname.split('/').pop();
-            if (path === 'details.html') {
-                const sn = url.searchParams.get('sn');
-                const deviceResult = findDeviceBySerial(sn);
-                if (deviceResult) showDeviceDetails(deviceResult.item, deviceResult.collectionName);
-                else alert(`Device with SN ${sn} not found.`);
-            } else if (path === 'return.html') {
-                const loanGroupId = url.searchParams.get('id');
-                const q = query(collection(db, "LoanHistory"), where("LoanGroupID", "==", loanGroupId));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    const loanItems = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                    showReturnModal(loanGroupId, loanItems);
-                } else {
-                    alert(`Loan with ID ${loanGroupId} not found.`);
-                }
-            }
-        } catch (e) {
-            // Not a valid URL, assume it's a serial or loan group ID
-            const q = query(collection(db, "LoanHistory"), where("LoanGroupID", "==", code));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                const loanItems = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                showReturnModal(code, loanItems);
-            } else {
-                const deviceResult = findDeviceBySerial(code);
-                if (deviceResult) showDeviceDetails(deviceResult.item, deviceResult.collectionName);
-                else alert(`Device or Loan with ID ${code} not found.`);
-            }
-        }
-    }
-
-    function findDeviceBySerial(serial) {
-        for (const cName in collectionConfigs) {
-            const item = allData[cName]?.find(i => i[collectionConfigs[cName].serialField] === serial);
-            if (item) {
-                return { item, collectionName: cName };
-            }
-        }
-        return null;
-    }
-
-    function showDeviceDetails(item, collectionName) {
-        const modal = document.getElementById('deviceDetailModal');
-        const title = document.getElementById('deviceDetailTitle');
-        const content = document.getElementById('deviceDetailContent');
-        const addToCartBtn = document.getElementById('addToCartButton');
-
-        title.textContent = item[collectionConfigs[collectionName].nameField] || 'Device Details';
-        
-        content.innerHTML = '';
-        const headers = collectionConfigs[collectionName].headers;
-        headers.forEach(header => {
-            content.innerHTML += `<div class="flex justify-between border-b py-2"><span class="text-gray-500">${header}</span><span class="font-semibold text-gray-800">${item[header] || 'N/A'}</span></div>`;
-        });
-
-        addToCartBtn.onclick = () => {
-            addDeviceToCart(collectionName, item.id);
-            hideModal('deviceDetailModal');
-        };
-
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-    }
-
-    function addDeviceToCart(collectionName, id) {
-        const item = allData[collectionName]?.find(i => i.id === id);
-        if (!item) { alert('Device not found!'); return; }
-        if (item.Status !== 'Active') { alert(`Not available. Status: ${item.Status}`); return; }
-        if (cartItems.some(c => c.id === id)) { alert('Already in cart.'); return; }
-        cartItems.push({ ...item, collection: collectionName });
-        renderCart();
-    }
-
-    function renderCart() {
-        const cartDiv = document.getElementById('cart');
-        cartDiv.innerHTML = cartItems.length === 0 ? '<p class="text-sm text-gray-500">ยังไม่มีอุปกรณ์ในตะกร้า</p>' : '';
-        cartItems.forEach((item, index) => {
-            const name = item.ComputerName || item.Model || item.ItemName;
-            cartDiv.innerHTML += `<div class="flex justify-between items-center bg-gray-100 p-2 rounded"><span class="text-sm">${name}</span><button type="button" onclick="removeFromCart(${index})" class="text-red-500 font-bold">X</button></div>`;
-        });
-    }
-    
-    window.removeFromCart = (index) => {
-        const removedItem = cartItems.splice(index, 1)[0];
-        renderCart();
-        const card = document.querySelector(`.device-card[onclick*="'${removedItem.id}'"]`);
-        if (card) card.classList.remove('selected');
-    };
-
-    window.submitLoan = async () => {
-        const borrowerName = document.getElementById('borrowerName').value;
-        const dueDate = document.getElementById('dueDate').value;
-        const notes = document.getElementById('loanNotes').value;
-        if (!borrowerName || !dueDate || cartItems.length === 0) return alert('Please fill all fields and add items.');
-        
-        const loanGroupId = `GRP-${Date.now()}`;
-        const batch = writeBatch(db);
-
-        cartItems.forEach(item => {
-            const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-            const loanDocRef = doc(db, "LoanHistory", transactionId);
-            const loanData = {
-                LoanGroupID: loanGroupId,
-                TransactionID: transactionId,
-                DeviceSerial: item[collectionConfigs[item.collection].serialField],
-                DeviceType: item.collection,
-                BorrowerName: borrowerName,
-                LoanDate: serverTimestamp(),
-                DueDate: new Date(dueDate),
-                ReturnDate: null,
-                Status: 'On Loan',
-                Notes: notes || ""
-            };
-            batch.set(loanDocRef, loanData);
-            const itemRef = doc(db, item.collection, item.id);
-            batch.update(itemRef, { Status: 'On Loan' });
-        });
-
-        try {
-            await batch.commit();
-            showLoanReceipt(loanGroupId, { borrowerName, dueDate, items: cartItems });
-            cartItems = [];
-            renderCart();
-            document.getElementById('loanForm').reset();
-        } catch (error) { console.error("Error:", error); alert('Failed to submit loan.'); }
-    };
-    
-    function showLoanReceipt(loanGroupId, loanDetails) {
-        const modal = document.getElementById('receiptModal');
-        const canvas = document.getElementById('receiptQrCanvas');
-        const detailsDiv = document.getElementById('receiptDetails');
-        const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}return.html?id=${loanGroupId}`;
-        QRCode.toCanvas(canvas, url, { width: 256 });
-        let detailsHtml = `<p><strong>ผู้ยืม:</strong> ${loanDetails.borrowerName}</p><p><strong>กำหนดคืน:</strong> ${loanDetails.dueDate}</p><h4 class="font-semibold mt-4 mb-2">รายการ:</h4><ul class="list-disc list-inside">`;
-        loanDetails.items.forEach(item => { detailsHtml += `<li>${item.ComputerName || item.Model || item.ItemName}</li>`; });
-        detailsHtml += `</ul>`;
-        detailsDiv.innerHTML = detailsHtml;
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-    }
-
-    function showReturnModal(loanGroupId, loanItems) {
-        const modal = document.getElementById('returnModal');
-        const firstItem = loanItems[0];
-        document.getElementById('returnDetails').innerHTML = `<p><strong>Loan Group ID:</strong> ${loanGroupId}</p><p><strong>ผู้ยืม:</strong> ${firstItem.BorrowerName}</p>`;
-        const itemsList = document.getElementById('return-items-list');
-        const actionsDiv = document.getElementById('return-actions');
-        itemsList.innerHTML = '';
-        actionsDiv.innerHTML = '<button onclick="hideModal(\'returnModal\')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button>';
-        
-        let hasItemsToReturn = false;
-        loanItems.forEach(item => {
-            const device = allData[item.DeviceType]?.find(d => d[collectionConfigs[item.DeviceType].serialField] === item.DeviceSerial);
-            const deviceName = device?.[collectionConfigs[item.DeviceType].nameField] || item.DeviceSerial;
-            const isReturned = item.Status === 'Returned';
-            if (!isReturned) hasItemsToReturn = true;
-
-            let buttonHtml = isReturned 
-                ? `<span class="text-sm text-gray-500 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
-                : `<button onclick="processReturn('${item.TransactionID}', '${item.DeviceSerial}', '${item.DeviceType}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
-            itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b"><p>${deviceName}</p>${buttonHtml}</div>`;
-        });
-
-        if (hasItemsToReturn) {
-            actionsDiv.insertAdjacentHTML('afterbegin', `<button onclick="processReturnAll()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Return All</button>`);
-        }
-
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-    }
-
-    window.processReturn = async (transactionId, deviceSerial, deviceType) => {
-        if (!confirm('Confirm return of this item?')) return;
-        try {
-            const batch = writeBatch(db);
-            const transactionRef = doc(db, "LoanHistory", transactionId);
-            batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
-            const device = allData[deviceType]?.find(d => d[collectionConfigs[deviceType].serialField] === deviceSerial);
-            if (device) {
-                const deviceRef = doc(db, deviceType, device.id);
-                batch.update(deviceRef, { Status: 'Active' });
-            }
-            await batch.commit();
-            alert('Item returned successfully!');
-            hideModal('returnModal');
-        } catch (error) { console.error("Error:", error); alert('Failed to return item.'); }
-    }
-    
-    window.processReturnAll = async () => {
-        const loanGroupId = document.getElementById('returnDetails').querySelector('p').textContent.split(': ')[1];
-        const loanItems = allData.LoanHistory.filter(item => item.LoanGroupID === loanGroupId);
-        const itemsToReturn = loanItems.filter(item => item.Status === 'On Loan');
-        if (itemsToReturn.length === 0) {
-            alert("All items have already been returned.");
-            return;
-        }
-        if (!confirm(`Are you sure you want to return all ${itemsToReturn.length} remaining items?`)) return;
-
-        try {
-            const batch = writeBatch(db);
-            for (const item of itemsToReturn) {
-                const transactionRef = doc(db, "LoanHistory", item.id);
-                batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
-                const device = allData[item.DeviceType]?.find(d => d[collectionConfigs[item.DeviceType].serialField] === item.DeviceSerial);
-                if (device) {
-                    const deviceRef = doc(db, item.DeviceType, device.id);
-                    batch.update(deviceRef, { Status: 'Active' });
-                }
-            }
-            await batch.commit();
-            alert('All items returned successfully!');
-            hideModal('returnModal');
-        } catch (error) {
-            console.error("Error returning all items: ", error);
-            alert('Failed to return all items.');
-        }
-    }
-
 
     function listenToCollection(collectionName, config) {
         onSnapshot(collection(db, collectionName), (snapshot) => {

@@ -129,7 +129,7 @@
   </div>
 
   <!-- Modals -->
-  <div id="editModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md"><h3 id="editModalTitle" class="text-xl font-semibold mb-6"></h3><form id="editForm" class="space-y-4"></form><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Cancel</button><button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button></div></div></div>
+  <div id="editModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md"><h3 id="editModalTitle" class="text-xl font-semibold mb-6"></h3><form id="editForm" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></form><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Cancel</button><button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button></div></div></div>
   <div id="qrModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 text-center"><h3 id="qrModalTitle" class="text-xl font-semibold mb-4"></h3><canvas id="qrCanvas" class="mx-auto"></canvas><button onclick="hideModal('qrModal')" class="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg">Close</button></div></div>
   <div id="receiptModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md text-center"><h3 class="text-2xl font-bold text-green-600 mb-2">ยืมสำเร็จ!</h3><p class="text-gray-600 mb-6">กรุณาบันทึก QR Code นี้สำหรับคืนอุปกรณ์</p><canvas id="receiptQrCanvas" class="mx-auto border rounded-lg"></canvas><div id="receiptDetails" class="text-left mt-6 text-sm"></div><button onclick="hideModal('receiptModal')" class="mt-8 px-6 py-2 bg-indigo-600 text-white rounded-lg w-full">Close</button></div></div>
   <div id="returnModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 class="text-xl font-semibold mb-4">คืนอุปกรณ์</h3><div id="returnDetails" class="text-sm mb-4 border-b pb-4"></div><h4 class="text-lg font-semibold text-gray-700 mb-3">รายการที่ยืม:</h4><div id="return-items-list" class="space-y-3"></div><div class="mt-6 flex justify-end"><button onclick="hideModal('returnModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button></div></div></div>
@@ -143,15 +143,40 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Software: [] };
+    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Software: [], Locations: [] };
     let currentEdit = { mode: null, collection: null, id: null };
     let cartItems = [];
     let html5QrCode;
 
     const collectionConfigs = {
-        Computers: { headers: ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location'], nameField: 'ComputerName', serialField: 'SerialNumber', icon: 'fa-laptop' },
-        Monitors: { headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status'], nameField: 'Model', serialField: 'MonitorSerial', icon: 'fa-desktop' },
-        Audio: { headers: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status'], nameField: 'ItemName', serialField: 'SerialNumber', icon: 'fa-volume-up' }
+        Computers: { 
+            headers: ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location'], 
+            nameField: 'ComputerName', 
+            serialField: 'SerialNumber', 
+            icon: 'fa-laptop',
+            dropdowns: {
+                Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
+                Type: ['Desktop', 'Laptop', 'POS']
+            }
+        },
+        Monitors: { 
+            headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status'], 
+            nameField: 'Model', 
+            serialField: 'MonitorSerial', 
+            icon: 'fa-desktop',
+            dropdowns: {
+                Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed']
+            }
+        },
+        Audio: { 
+            headers: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status'], 
+            nameField: 'ItemName', 
+            serialField: 'SerialNumber', 
+            icon: 'fa-volume-up',
+            dropdowns: {
+                Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed']
+            }
+        }
     };
 
     // --- Mobile Navigation ---
@@ -359,10 +384,37 @@
         currentEdit = { mode, collection, id };
         const form = document.getElementById('editForm');
         form.innerHTML = '';
-        const { headers } = collectionConfigs[collection];
+        const config = collectionConfigs[collection];
+        const { headers, dropdowns } = config;
         const itemData = (mode === 'edit') ? allData[collection].find(i => i.id === id) : {};
         document.getElementById('editModalTitle').textContent = `${mode === 'edit' ? 'Edit' : 'Add'} ${collection.slice(0, -1)}`;
-        headers.forEach(header => form.innerHTML += `<div><label class="block text-sm font-medium text-gray-700">${header}</label><input type="text" name="${header}" value="${itemData[header] || ''}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white"></div>`);
+        
+        headers.forEach(header => {
+            const value = itemData[header] || '';
+            let fieldHtml = `<div><label class="block text-sm font-medium text-gray-700">${header}</label>`;
+            
+            if (header === 'Location' && collection === 'Computers') {
+                fieldHtml += `<select name="Location" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white">`;
+                allData.Locations.forEach(loc => {
+                    const isSelected = value === loc.LocationName ? 'selected' : '';
+                    fieldHtml += `<option value="${loc.LocationName}" ${isSelected}>${loc.LocationName}</option>`;
+                });
+                fieldHtml += `</select>`;
+            } else if (dropdowns && dropdowns[header]) {
+                const options = dropdowns[header];
+                fieldHtml += `<select name="${header}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white">`;
+                options.forEach(opt => {
+                    const isSelected = value === opt ? 'selected' : '';
+                    fieldHtml += `<option value="${opt}" ${isSelected}>${opt}</option>`;
+                });
+                fieldHtml += `</select>`;
+            } else {
+                fieldHtml += `<input type="text" name="${header}" value="${value}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white">`;
+            }
+            fieldHtml += `</div>`;
+            form.innerHTML += fieldHtml;
+        });
+
         document.getElementById('editModal').classList.remove('opacity-0', 'pointer-events-none');
     };
 
@@ -689,6 +741,7 @@
         listenToCollection('Audio', { isInventory: true });
         listenToCollection('Software', { isInventory: false });
         listenToCollection('LoanHistory', { isInventory: false });
+        listenToCollection('Locations', { isInventory: false }); // Add this line
         document.getElementById('loading-state').style.display = 'none';
         loadPage('Dashboard', document.getElementById('nav-dashboard'));
     });

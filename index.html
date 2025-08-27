@@ -143,7 +143,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Software: [], Locations: [] };
+    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Software: [], Location: [] };
     let currentEdit = { mode: null, collection: null, id: null };
     let cartItems = [];
     let html5QrCode;
@@ -157,6 +157,7 @@
             dropdowns: {
                 Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
                 Type: ['Desktop', 'Laptop', 'POS']
+                // Location will be populated from Firestore
             }
         },
         Monitors: { 
@@ -393,9 +394,9 @@
             const value = itemData[header] || '';
             let fieldHtml = `<div><label class="block text-sm font-medium text-gray-700">${header}</label>`;
             
-            if (header === 'Location' && collection === 'Computers') {
+            if (header === 'Location' && allData.Location.length > 0) {
                 fieldHtml += `<select name="Location" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white">`;
-                allData.Locations.forEach(loc => {
+                allData.Location.forEach(loc => {
                     const isSelected = value === loc.LocationName ? 'selected' : '';
                     fieldHtml += `<option value="${loc.LocationName}" ${isSelected}>${loc.LocationName}</option>`;
                 });
@@ -741,7 +742,7 @@
         listenToCollection('Audio', { isInventory: true });
         listenToCollection('Software', { isInventory: false });
         listenToCollection('LoanHistory', { isInventory: false });
-        listenToCollection('Locations', { isInventory: false }); // Add this line
+        listenToCollection('Location', { isInventory: false });
         document.getElementById('loading-state').style.display = 'none';
         loadPage('Dashboard', document.getElementById('nav-dashboard'));
     });

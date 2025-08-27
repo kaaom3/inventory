@@ -157,7 +157,6 @@
             dropdowns: {
                 Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
                 Type: ['Desktop', 'Laptop', 'POS']
-                // Location will be populated from Firestore
             }
         },
         Monitors: { 
@@ -395,12 +394,19 @@
             let fieldHtml = `<div><label class="block text-sm font-medium text-gray-700">${header}</label>`;
             
             if (header === 'Location' && allData.Location.length > 0) {
-                fieldHtml += `<select name="Location" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white">`;
+                fieldHtml += `
+                    <div class="relative">
+                        <input type="text" id="locationSearchInput" name="Location" value="${value}"
+                               onkeyup="filterLocations(this.value)"
+                               onfocus="document.getElementById('locationDropdown').classList.remove('hidden')"
+                               placeholder="Search or select location..."
+                               autocomplete="off"
+                               class="mt-1 block w-full px-3 py-2 border rounded-md bg-white">
+                        <div id="locationDropdown" class="hidden absolute z-10 w-full bg-white border rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">`;
                 allData.Location.forEach(loc => {
-                    const isSelected = value === loc.LocationName ? 'selected' : '';
-                    fieldHtml += `<option value="${loc.LocationName}" ${isSelected}>${loc.LocationName}</option>`;
+                    fieldHtml += `<a href="#" data-value="${loc.LocationName}" class="location-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">${loc.LocationName}</a>`;
                 });
-                fieldHtml += `</select>`;
+                fieldHtml += `</div></div>`;
             } else if (dropdowns && dropdowns[header]) {
                 const options = dropdowns[header];
                 fieldHtml += `<select name="${header}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white">`;
@@ -415,8 +421,32 @@
             fieldHtml += `</div>`;
             form.innerHTML += fieldHtml;
         });
+        
+        const locationDropdown = form.querySelector('#locationDropdown');
+        if (locationDropdown) {
+            form.querySelector('#locationSearchInput').addEventListener('blur', () => {
+                setTimeout(() => locationDropdown.classList.add('hidden'), 200);
+            });
+            locationDropdown.addEventListener('click', (e) => {
+                if (e.target.classList.contains('location-item')) {
+                    e.preventDefault();
+                    form.querySelector('#locationSearchInput').value = e.target.dataset.value;
+                    locationDropdown.classList.add('hidden');
+                }
+            });
+        }
 
         document.getElementById('editModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
+    
+    window.filterLocations = (filterText) => {
+        const filter = filterText.toUpperCase();
+        const dropdown = document.getElementById('locationDropdown');
+        const items = dropdown.getElementsByTagName('a');
+        for (let i = 0; i < items.length; i++) {
+            const txtValue = items[i].textContent || items[i].innerText;
+            items[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+        }
     };
 
     window.hideModal = (modalId) => document.getElementById(modalId).classList.add('opacity-0', 'pointer-events-none');

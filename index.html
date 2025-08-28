@@ -164,7 +164,7 @@
 
     const collectionConfigs = {
         Computers: { 
-            headers: ['ComputerName', 'Manufacturer', 'Model', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyEndDate'], 
+            headers: ['ComputerName', 'Manufacturer', 'Model', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyStartDate', 'WarrantyEndDate'], 
             nameField: 'ComputerName', 
             serialField: 'SerialNumber', 
             icon: 'fa-laptop',
@@ -174,7 +174,7 @@
             }
         },
         Monitors: { 
-            headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status', 'WarrantyEndDate'], 
+            headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
             nameField: 'Model', 
             serialField: 'MonitorSerial', 
             icon: 'fa-desktop',
@@ -183,7 +183,7 @@
             }
         },
         Audio: { 
-            headers: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'WarrantyEndDate'], 
+            headers: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
             nameField: 'ItemName', 
             serialField: 'SerialNumber', 
             icon: 'fa-volume-up',
@@ -236,7 +236,34 @@
             data.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors";
-                headers.forEach(header => tr.innerHTML += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item[header] || ''}</td>`);
+                headers.forEach(header => {
+                    let cellValue = item[header] || '';
+                    if (header === 'WarrantyEndDate' && item.WarrantyEndDate) {
+                        const endDate = new Date(item.WarrantyEndDate);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+
+                        if (!isNaN(endDate)) {
+                            const diffTime = endDate - today;
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            let colorClass = '';
+                            let daysText = '';
+                            if (diffDays < 0) {
+                                colorClass = 'text-red-500';
+                                daysText = '(Expired)';
+                            } else if (diffDays <= 30) {
+                                colorClass = 'text-yellow-500';
+                                daysText = `(${diffDays} days left)`;
+                            } else {
+                                colorClass = 'text-green-500';
+                                daysText = `(${diffDays} days left)`;
+                            }
+                            cellValue = `<span>${cellValue} <span class="${colorClass} text-xs">${daysText}</span></span>`;
+                        }
+                    }
+                    tr.innerHTML += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${cellValue}</td>`;
+                });
                 tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"><i class="fas fa-qrcode"></i></button></td>`;
                 tbody.appendChild(tr);
             });

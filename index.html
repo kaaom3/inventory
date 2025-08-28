@@ -70,6 +70,7 @@
                         <li><a href="#" onclick="loadPage('Accessory', this, 'Mouse'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Mouse</a></li>
                         <li><a href="#" onclick="loadPage('Accessory', this, 'Keyboard'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Keyboard</a></li>
                         <li><a href="#" onclick="loadPage('Accessory', this, 'Webcam'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Webcam</a></li>
+                        <li><a href="#" onclick="loadPage('Accessory', this, 'UPS'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">UPS</a></li>
                         <li><a href="#" onclick="loadPage('Accessory', this, null); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">All</a></li>
                     </ul>
                 </details>
@@ -208,7 +209,7 @@
             icon: 'fa-keyboard',
             dropdowns: {
                 Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
-                AccessoryType: ['Mouse', 'Keyboard', 'Webcam', 'Docking Station', 'Adapter', 'Other']
+                AccessoryType: ['Mouse', 'Keyboard', 'Webcam', 'Docking Station', 'Adapter', 'UPS', 'Other']
             }
         }
     };
@@ -242,15 +243,15 @@
         
         if (pageName === 'Software') buildSoftwareCards(allData.Software);
         if (pageName === 'Accessory') {
-            buildTable('Accessory', allData.Accessory);
             const searchInput = document.getElementById('accessorySearchInput');
+            let filteredData = allData.Accessory;
             if (filterValue) {
                 searchInput.value = filterValue;
-                filterTable('AccessoryTable', filterValue);
+                filteredData = allData.Accessory.filter(item => item.AccessoryType === filterValue);
             } else {
                 searchInput.value = '';
-                filterTable('AccessoryTable', '');
             }
+            buildTable('Accessory', filteredData);
         }
 
         if (window.innerWidth < 768) {
@@ -585,12 +586,13 @@
         const computers = allData['Computers'] || [];
         const monitors = allData['Monitors'] || [];
         const audio = allData['Audio'] || [];
-        const allDevices = [...computers, ...monitors, ...audio, ...(allData['Accessory'] || [])];
+        const accessories = allData['Accessory'] || [];
+        const allDevices = [...computers, ...monitors, ...audio, ...accessories];
         
         document.getElementById('stat-total-computers').textContent = computers.length;
         document.getElementById('stat-total-monitors').textContent = monitors.length;
         document.getElementById('stat-total-audio').textContent = audio.length;
-        document.getElementById('stat-total-accessories').textContent = (allData['Accessory'] || []).length;
+        document.getElementById('stat-total-accessories').textContent = accessories.length;
         document.getElementById('stat-total-onloan').textContent = allDevices.filter(d => d.Status === 'On Loan').length;
         
         const statusCounts = allDevices.reduce((acc, device) => {

@@ -728,8 +728,16 @@
         });
     }
 
+    // ✅ FIXED: Added prompt for confirmation
     window.resetAllStatusToActive = async function() {
-        if (!confirm('Are you sure you want to reset the status of ALL devices to "Active"? This action cannot be undone.')) return;
+        const confirmationText = "RESET";
+        const userInput = prompt(`This is a destructive action. To confirm, please type "${confirmationText}" in the box below.`);
+
+        if (userInput !== confirmationText) {
+            alert("Confirmation failed. Action cancelled.");
+            return;
+        }
+        
         alert('Updating statuses... This may take a moment.');
         try {
             const batch = writeBatch(db);

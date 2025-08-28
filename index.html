@@ -121,12 +121,13 @@
             </div>
         </div>
         <!-- KPI Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Desktops</p><p id="stat-total-desktops" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Laptops</p><p id="stat-total-laptops" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-full"><i class="fab fa-apple text-2xl text-gray-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total MacBooks</p><p id="stat-total-macbooks" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-green-100 dark:bg-green-900/50 p-4 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Monitors</p><p id="stat-total-monitors" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-purple-100 dark:bg-purple-900/50 p-4 rounded-full"><i class="fas fa-keyboard text-2xl text-purple-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Accessories</p><p id="stat-total-accessories" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Desktops</p><p id="stat-total-desktops" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-desktops-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-desktops-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-desktops-repair" class="font-medium text-orange-500">0</span></div></div></div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Laptops</p><p id="stat-total-laptops" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-laptops-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-laptops-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-laptops-repair" class="font-medium text-orange-500">0</span></div></div></div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-full"><i class="fab fa-apple text-2xl text-gray-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total MacBooks</p><p id="stat-total-macbooks" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-macbooks-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-macbooks-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-macbooks-repair" class="font-medium text-orange-500">0</span></div></div></div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-green-100 dark:bg-green-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Monitors</p><p id="stat-total-monitors" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-monitors-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-monitors-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-monitors-repair" class="font-medium text-orange-500">0</span></div></div></div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-red-100 dark:bg-red-900/50 p-3 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Audio</p><p id="stat-total-audio" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-audio-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-audio-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-audio-repair" class="font-medium text-orange-500">0</span></div></div></div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-purple-100 dark:bg-purple-900/50 p-3 rounded-full"><i class="fas fa-keyboard text-2xl text-purple-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Accessories</p><p id="stat-total-accessories" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-accessories-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-accessories-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-accessories-repair" class="font-medium text-orange-500">0</span></div></div></div>
         </div>
         <!-- Charts and Recent Activity -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -618,10 +619,40 @@
         const accessories = allData['Accessory'] || [];
         const allDevices = [...computers, ...monitors, ...audio, ...accessories];
         
-        document.getElementById('stat-total-computers').textContent = computers.length;
         document.getElementById('stat-total-monitors').textContent = monitors.length;
-        document.getElementById('stat-total-audio').textContent = audio.length;
         document.getElementById('stat-total-accessories').textContent = accessories.length;
+        document.getElementById('stat-total-audio').textContent = audio.length;
+        
+        const desktops = computers.filter(c => c.Type === 'Desktop');
+        const laptops = computers.filter(c => c.Type === 'Laptop');
+        const macbooks = computers.filter(c => c.Type === 'MacBook');
+        
+        document.getElementById('stat-total-desktops').textContent = desktops.length;
+        document.getElementById('stat-desktops-active').textContent = desktops.filter(d => d.Status === 'Active').length;
+        document.getElementById('stat-desktops-on-loan').textContent = desktops.filter(d => d.Status === 'On Loan').length;
+        document.getElementById('stat-desktops-repair').textContent = desktops.filter(d => d.Status === 'Repair').length;
+        
+        document.getElementById('stat-total-laptops').textContent = laptops.length;
+        document.getElementById('stat-laptops-active').textContent = laptops.filter(l => l.Status === 'Active').length;
+        document.getElementById('stat-laptops-on-loan').textContent = laptops.filter(l => l.Status === 'On Loan').length;
+        document.getElementById('stat-laptops-repair').textContent = laptops.filter(l => l.Status === 'Repair').length;
+
+        document.getElementById('stat-total-macbooks').textContent = macbooks.length;
+        document.getElementById('stat-macbooks-active').textContent = macbooks.filter(l => l.Status === 'Active').length;
+        document.getElementById('stat-macbooks-on-loan').textContent = macbooks.filter(l => l.Status === 'On Loan').length;
+        document.getElementById('stat-macbooks-repair').textContent = macbooks.filter(l => l.Status === 'Repair').length;
+
+        document.getElementById('stat-monitors-active').textContent = monitors.filter(m => m.Status === 'Active').length;
+        document.getElementById('stat-monitors-on-loan').textContent = monitors.filter(m => m.Status === 'On Loan').length;
+        document.getElementById('stat-monitors-repair').textContent = monitors.filter(m => m.Status === 'Repair').length;
+
+        document.getElementById('stat-audio-active').textContent = audio.filter(a => a.Status === 'Active').length;
+        document.getElementById('stat-audio-on-loan').textContent = audio.filter(a => a.Status === 'On Loan').length;
+        document.getElementById('stat-audio-repair').textContent = audio.filter(a => a.Status === 'Repair').length;
+
+        document.getElementById('stat-accessories-active').textContent = accessories.filter(a => a.Status === 'Active').length;
+        document.getElementById('stat-accessories-on-loan').textContent = accessories.filter(a => a.Status === 'On Loan').length;
+        document.getElementById('stat-accessories-repair').textContent = accessories.filter(a => a.Status === 'Repair').length;
         
         const statusCounts = allDevices.reduce((acc, device) => {
             if(device.Status) {

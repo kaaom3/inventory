@@ -259,13 +259,13 @@
       </div>
       <div id="monitors-page" class="page-content">
         <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Monitor Inventory</h2><button onclick="openModal('add', 'Monitors')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
-        <div class="mb-4"><input type="text" onkeyup="handleSearch('Monitors', this.value)" placeholder="Search monitors..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+        <div class="mb-4"><input type="text" id="monitorsSearchInput" onkeyup="handleSearch('Monitors', this.value)" placeholder="Search monitors..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="MonitorsTable" class="min-w-full"></table></div></div>
         <div id="MonitorsPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
       </div>
       <div id="audio-page" class="page-content">
         <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Audio Inventory</h2><button onclick="openModal('add', 'Audio')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
-        <div class="mb-4"><input type="text" onkeyup="handleSearch('Audio', this.value)" placeholder="Search audio..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+        <div class="mb-4"><input type="text" id="audioSearchInput" onkeyup="handleSearch('Audio', this.value)" placeholder="Search audio..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AudioTable" class="min-w-full"></table></div></div>
         <div id="AudioPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
       </div>
@@ -316,6 +316,7 @@
             nameField: 'ComputerName', 
             serialField: 'SerialNumber', 
             icon: 'fa-laptop',
+            categoryFilterField: 'Type',
             dropdowns: {
                 Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
                 Type: ['Desktop', 'Laptop', 'MacBook', 'POS']
@@ -344,6 +345,7 @@
             nameField: 'Model',
             serialField: 'SerialNumber',
             icon: 'fa-keyboard',
+            categoryFilterField: 'AccessoryType',
             dropdowns: {
                 Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
                 AccessoryType: ['Mouse', 'Keyboard', 'Webcam', 'Docking Station', 'Adapter', 'UPS', 'Other']
@@ -378,13 +380,20 @@
         const pageId = pageName.toLowerCase() + '-page';
         document.getElementById(pageId).style.display = 'block';
         
-        if (pageName === 'Software') buildSoftwareCards(allData.Software);
-        if (pageName === 'Computers' || pageName === 'Monitors' || pageName === 'Audio' || pageName === 'Accessory') {
+        if (pageName === 'Software') {
+            buildSoftwareCards(allData.Software);
+        } else if (collectionConfigs[pageName]) {
             const state = paginationState[pageName];
-            state.filterText = ''; // Reset search on page load
-            if (document.getElementById(`${pageName.toLowerCase()}SearchInput`)) {
-                 document.getElementById(`${pageName.toLowerCase()}SearchInput`).value = '';
+            state.categoryFilter = filterValue; // Set category filter from submenu
+            state.filterText = ''; // Reset search text
+            state.currentPage = 1; // Reset to page 1
+
+            const searchInputId = `${pageName.toLowerCase()}SearchInput`;
+            const searchInput = document.getElementById(searchInputId);
+            if (searchInput) {
+                searchInput.value = '';
             }
+            
             buildTable(pageName);
         }
 
@@ -400,18 +409,26 @@
         const state = paginationState[collectionName];
         const fullData = allData[collectionName] || [];
 
-        const filter = state.filterText.toUpperCase();
-        const filteredData = filter
-            ? fullData.filter(item => JSON.stringify(Object.values(item)).toUpperCase().includes(filter))
-            : fullData;
+        // Apply category filter first
+        let categoryFilteredData = fullData;
+        const config = collectionConfigs[collectionName];
+        if (state.categoryFilter && config.categoryFilterField) {
+            categoryFilteredData = fullData.filter(item => item[config.categoryFilterField] === state.categoryFilter);
+        }
 
-        const totalRows = filteredData.length;
+        // Then apply search filter
+        const searchFilter = state.filterText.toUpperCase();
+        const finalFilteredData = searchFilter
+            ? categoryFilteredData.filter(item => JSON.stringify(Object.values(item)).toUpperCase().includes(searchFilter))
+            : categoryFilteredData;
+
+        const totalRows = finalFilteredData.length;
         const startIndex = (state.currentPage - 1) * state.rowsPerPage;
         const endIndex = startIndex + state.rowsPerPage;
-        const paginatedData = filteredData.slice(startIndex, endIndex);
+        const paginatedData = finalFilteredData.slice(startIndex, endIndex);
 
         table.innerHTML = ''; // Clear existing table content
-        const { headers, nameField, serialField } = collectionConfigs[collectionName];
+        const { headers, nameField, serialField } = config;
         const displayHeaders = [...headers, 'Actions'];
         const thead = document.createElement('thead');
         thead.className = 'bg-gray-50 dark:bg-gray-700';
@@ -1008,7 +1025,8 @@
             paginationState[collectionName] = {
                 currentPage: 1,
                 rowsPerPage: 10,
-                filterText: ''
+                filterText: '',
+                categoryFilter: null
             };
         });
 

@@ -54,7 +54,24 @@
         </div>
         <ul class="space-y-2">
             <li><a href="#" id="nav-dashboard" onclick="loadPage('Dashboard', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-tachometer-alt w-5 text-center"></i><span>Dashboard</span></a></li>
-            <li><a href="#" id="nav-computers" onclick="loadPage('Computers', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-laptop w-5 text-center"></i><span>Computers</span></a></li>
+            <li>
+                <details class="group">
+                    <summary class="nav-link flex items-center justify-between px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 cursor-pointer">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-laptop w-5 text-center"></i>
+                            <span>Computers</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs transform group-open:rotate-90 transition-transform"></i>
+                    </summary>
+                    <ul class="pl-8 pt-2 space-y-1">
+                        <li><a href="#" onclick="loadPage('Computers', this, 'Desktop'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Desktop</a></li>
+                        <li><a href="#" onclick="loadPage('Computers', this, 'Laptop'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Laptop</a></li>
+                        <li><a href="#" onclick="loadPage('Computers', this, 'MacBook'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">MacBook</a></li>
+                        <li><a href="#" onclick="loadPage('Computers', this, 'POS'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">POS</a></li>
+                        <li><a href="#" onclick="loadPage('Computers', this, null); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">All</a></li>
+                    </ul>
+                </details>
+            </li>
             <li><a href="#" id="nav-monitors" onclick="loadPage('Monitors', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-desktop w-5 text-center"></i><span>Monitors</span></a></li>
             <li><a href="#" id="nav-audio" onclick="loadPage('Audio', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-volume-up w-5 text-center"></i><span>Audio</span></a></li>
             <li>
@@ -104,10 +121,11 @@
             </div>
         </div>
         <!-- KPI Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-blue-100 dark:bg-blue-900/50 p-4 rounded-full"><i class="fas fa-laptop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Computers</p><p id="stat-total-computers" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Desktops</p><p id="stat-total-desktops" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div></div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Laptops</p><p id="stat-total-laptops" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div></div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-full"><i class="fab fa-apple text-2xl text-gray-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total MacBooks</p><p id="stat-total-macbooks" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div></div>
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-green-100 dark:bg-green-900/50 p-4 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Monitors</p><p id="stat-total-monitors" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-red-100 dark:bg-red-900/50 p-4 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Audio</p><p id="stat-total-audio" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-purple-100 dark:bg-purple-900/50 p-4 rounded-full"><i class="fas fa-keyboard text-2xl text-purple-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Accessories</p><p id="stat-total-accessories" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
         </div>
         <!-- Charts and Recent Activity -->
@@ -135,7 +153,7 @@
       </div>
 
       <!-- Inventory Pages -->
-      <div id="computers-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Computer Inventory</h2><button onclick="openModal('add', 'Computers')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('ComputersTable', this.value)" placeholder="Search computers..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="ComputersTable" class="min-w-full"></table></div></div></div>
+      <div id="computers-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Computer Inventory</h2><button onclick="openModal('add', 'Computers')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" id="computersSearchInput" onkeyup="filterTable('ComputersTable', this.value)" placeholder="Search computers..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="ComputersTable" class="min-w-full"></table></div></div></div>
       <div id="monitors-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Monitor Inventory</h2><button onclick="openModal('add', 'Monitors')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('MonitorsTable', this.value)" placeholder="Search monitors..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="MonitorsTable" class="min-w-full"></table></div></div></div>
       <div id="audio-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Audio Inventory</h2><button onclick="openModal('add', 'Audio')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('AudioTable', this.value)" placeholder="Search audio..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AudioTable" class="min-w-full"></table></div></div></div>
       <div id="accessory-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Accessory Inventory</h2><button onclick="openModal('add', 'Accessory')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" id="accessorySearchInput" onkeyup="filterTable('AccessoryTable', this.value)" placeholder="Search accessories..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AccessoryTable" class="min-w-full"></table></div></div></div>
@@ -181,7 +199,7 @@
             icon: 'fa-laptop',
             dropdowns: {
                 Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
-                Type: ['Desktop', 'Laptop', 'POS']
+                Type: ['Desktop', 'Laptop', 'MacBook', 'POS']
             }
         },
         Monitors: { 
@@ -242,6 +260,17 @@
         document.getElementById(pageId).style.display = 'block';
         
         if (pageName === 'Software') buildSoftwareCards(allData.Software);
+        if (pageName === 'Computers') {
+            const searchInput = document.getElementById('computersSearchInput');
+            let filteredData = allData.Computers;
+            if (filterValue) {
+                searchInput.value = filterValue;
+                filteredData = allData.Computers.filter(item => item.Type === filterValue);
+            } else {
+                searchInput.value = '';
+            }
+            buildTable('Computers', filteredData);
+        }
         if (pageName === 'Accessory') {
             const searchInput = document.getElementById('accessorySearchInput');
             let filteredData = allData.Accessory;

@@ -15,19 +15,13 @@
     .page-content { display: none; }
     .nav-link.active { background-color: #4f46e5; color: white; font-weight: 600; }
     .dark .nav-link.active { background-color: #6366f1; }
-    .nav-link:not(.active):hover { background-color: #f3f4f6; color: #1f2937; }
-    .dark .nav-link:not(.active):hover { background-color: #374151; color: #f9fafb; }
+    .nav-link:not(.active):hover, .nav-link-sub:hover { background-color: #f3f4f6; color: #1f2937; }
+    .dark .nav-link:not(.active):hover, .dark .nav-link-sub:hover { background-color: #374151; color: #f9fafb; }
+    .nav-link-sub.active { color: #4f46e5; font-weight: 600; }
+    .dark .nav-link-sub.active { color: #a5b4fc; }
     .modal { transition: opacity 0.3s ease; }
     .modal-content { transition: all 0.3s ease; }
     .modal.opacity-0 .modal-content { transform: scale(0.95); }
-    #qr-reader { border: 2px solid #e5e7eb; }
-    .dark #qr-reader { border-color: #4b5563; }
-    .tab-button.active { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff; }
-    .dark .tab-button.active { border-color: #6366f1; color: #e0e7ff; background-color: rgba(79, 70, 229, 0.2); }
-    .device-card.selected { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); background-color: #eff6ff; }
-    .dark .device-card.selected { background-color: #1e3a8a; border-color: #3b82f6; }
-    .device-card.selected .selected-icon { opacity: 1; }
-    .selected-icon { opacity: 0; transition: opacity 0.2s ease-in-out; }
     #sidebar { transition: transform 0.3s ease-in-out; }
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
@@ -63,6 +57,23 @@
             <li><a href="#" id="nav-computers" onclick="loadPage('Computers', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-laptop w-5 text-center"></i><span>Computers</span></a></li>
             <li><a href="#" id="nav-monitors" onclick="loadPage('Monitors', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-desktop w-5 text-center"></i><span>Monitors</span></a></li>
             <li><a href="#" id="nav-audio" onclick="loadPage('Audio', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-volume-up w-5 text-center"></i><span>Audio</span></a></li>
+            <li>
+                <details class="group">
+                    <summary class="nav-link flex items-center justify-between px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 cursor-pointer">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-keyboard w-5 text-center"></i>
+                            <span>Accessory</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs transform group-open:rotate-90 transition-transform"></i>
+                    </summary>
+                    <ul class="pl-8 pt-2 space-y-1">
+                        <li><a href="#" onclick="loadPage('Accessory', this, 'Mouse'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Mouse</a></li>
+                        <li><a href="#" onclick="loadPage('Accessory', this, 'Keyboard'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Keyboard</a></li>
+                        <li><a href="#" onclick="loadPage('Accessory', this, 'Webcam'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Webcam</a></li>
+                        <li><a href="#" onclick="loadPage('Accessory', this, null); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">All</a></li>
+                    </ul>
+                </details>
+            </li>
             <li><a href="#" id="nav-software" onclick="loadPage('Software', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-cogs w-5 text-center"></i><span>Software</span></a></li>
             <li class="pt-4"><div class="px-4 text-xs font-semibold uppercase text-gray-400">Management</div></li>
             <li><a href="loan.html" target="_blank" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-external-link-alt w-5 text-center"></i><span>หน้ายืม-คืน (User)</span></a></li>
@@ -96,7 +107,7 @@
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-blue-100 dark:bg-blue-900/50 p-4 rounded-full"><i class="fas fa-laptop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Computers</p><p id="stat-total-computers" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-green-100 dark:bg-green-900/50 p-4 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Monitors</p><p id="stat-total-monitors" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-red-100 dark:bg-red-900/50 p-4 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Audio</p><p id="stat-total-audio" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-yellow-100 dark:bg-yellow-900/50 p-4 rounded-full"><i class="fas fa-exchange-alt text-2xl text-yellow-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Devices On Loan</p><p id="stat-total-onloan" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4"><div class="bg-purple-100 dark:bg-purple-900/50 p-4 rounded-full"><i class="fas fa-keyboard text-2xl text-purple-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Accessories</p><p id="stat-total-accessories" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
         </div>
         <!-- Charts and Recent Activity -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -115,9 +126,7 @@
                                 <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Status</th>
                             </tr>
                         </thead>
-                        <tbody id="recent-loans-table" class="divide-y divide-gray-200 dark:divide-gray-700">
-                            <!-- Recent loans will be inserted here -->
-                        </tbody>
+                        <tbody id="recent-loans-table" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
                     </table>
                  </div>
             </div>
@@ -128,6 +137,7 @@
       <div id="computers-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Computer Inventory</h2><button onclick="openModal('add', 'Computers')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('ComputersTable', this.value)" placeholder="Search computers..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="ComputersTable" class="min-w-full"></table></div></div></div>
       <div id="monitors-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Monitor Inventory</h2><button onclick="openModal('add', 'Monitors')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('MonitorsTable', this.value)" placeholder="Search monitors..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="MonitorsTable" class="min-w-full"></table></div></div></div>
       <div id="audio-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Audio Inventory</h2><button onclick="openModal('add', 'Audio')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('AudioTable', this.value)" placeholder="Search audio..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AudioTable" class="min-w-full"></table></div></div></div>
+      <div id="accessory-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Accessory Inventory</h2><button onclick="openModal('add', 'Accessory')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" id="accessorySearchInput" onkeyup="filterTable('AccessoryTable', this.value)" placeholder="Search accessories..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AccessoryTable" class="min-w-full"></table></div></div></div>
       
       <!-- Software Page -->
       <div id="software-page" class="page-content">
@@ -158,7 +168,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Software: [], Location: [] };
+    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Software: [], Location: [], Accessory: [] };
     let currentEdit = { mode: null, collection: null, id: null };
     let statusChart;
 
@@ -190,6 +200,16 @@
             dropdowns: {
                 Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed']
             }
+        },
+        Accessory: {
+            headers: ['AccessoryType', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'AssignedComputer', 'UserName', 'WarrantyEndDate'],
+            nameField: 'Model',
+            serialField: 'SerialNumber',
+            icon: 'fa-keyboard',
+            dropdowns: {
+                Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
+                AccessoryType: ['Mouse', 'Keyboard', 'Webcam', 'Docking Station', 'Adapter', 'Other']
+            }
         }
     };
 
@@ -206,12 +226,32 @@
     sidebarOverlay.addEventListener('click', toggleMobileNav);
 
 
-    window.loadPage = (pageName, navElement) => {
-        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-        if (navElement) navElement.classList.add('active');
+    window.loadPage = (pageName, navElement, filterValue = null) => {
+        document.querySelectorAll('.nav-link, .nav-link-sub').forEach(link => link.classList.remove('active'));
+        if (navElement) {
+            navElement.classList.add('active');
+            const parentDetails = navElement.closest('details');
+            if (parentDetails) {
+                parentDetails.querySelector('summary').classList.add('active');
+            }
+        }
+        
         document.querySelectorAll('.page-content').forEach(page => page.style.display = 'none');
-        document.getElementById(pageName.toLowerCase() + '-page').style.display = 'block';
+        const pageId = pageName.toLowerCase() + '-page';
+        document.getElementById(pageId).style.display = 'block';
+        
         if (pageName === 'Software') buildSoftwareCards(allData.Software);
+        if (pageName === 'Accessory') {
+            buildTable('Accessory', allData.Accessory);
+            const searchInput = document.getElementById('accessorySearchInput');
+            if (filterValue) {
+                searchInput.value = filterValue;
+                filterTable('AccessoryTable', filterValue);
+            } else {
+                searchInput.value = '';
+                filterTable('AccessoryTable', '');
+            }
+        }
 
         if (window.innerWidth < 768) {
             toggleMobileNav();
@@ -545,11 +585,12 @@
         const computers = allData['Computers'] || [];
         const monitors = allData['Monitors'] || [];
         const audio = allData['Audio'] || [];
-        const allDevices = [...computers, ...monitors, ...audio];
+        const allDevices = [...computers, ...monitors, ...audio, ...(allData['Accessory'] || [])];
         
         document.getElementById('stat-total-computers').textContent = computers.length;
         document.getElementById('stat-total-monitors').textContent = monitors.length;
         document.getElementById('stat-total-audio').textContent = audio.length;
+        document.getElementById('stat-total-accessories').textContent = (allData['Accessory'] || []).length;
         document.getElementById('stat-total-onloan').textContent = allDevices.filter(d => d.Status === 'On Loan').length;
         
         const statusCounts = allDevices.reduce((acc, device) => {
@@ -692,6 +733,7 @@
         listenToCollection('Software', { isInventory: false });
         listenToCollection('LoanHistory', { isInventory: false });
         listenToCollection('Location', { isInventory: false });
+        listenToCollection('Accessory', { isInventory: true });
         document.getElementById('loading-state').style.display = 'none';
         loadPage('Dashboard', document.getElementById('nav-dashboard'));
     });

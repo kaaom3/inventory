@@ -164,7 +164,7 @@
 
     const collectionConfigs = {
         Computers: { 
-            headers: ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyEndDate'], 
+            headers: ['ComputerName', 'Manufacturer', 'Model', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyEndDate'], 
             nameField: 'ComputerName', 
             serialField: 'SerialNumber', 
             icon: 'fa-laptop',
@@ -622,14 +622,18 @@
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
             themeToggles.forEach(toggle => {
-                toggle.querySelector('.fa-moon').classList.add('hidden');
-                toggle.querySelector('.fa-sun').classList.remove('hidden');
+                if(toggle) {
+                    toggle.querySelector('.fa-moon').classList.add('hidden');
+                    toggle.querySelector('.fa-sun').classList.remove('hidden');
+                }
             });
         } else {
             document.documentElement.classList.remove('dark');
             themeToggles.forEach(toggle => {
-                toggle.querySelector('.fa-moon').classList.remove('hidden');
-                toggle.querySelector('.fa-sun').classList.add('hidden');
+                if(toggle) {
+                    toggle.querySelector('.fa-moon').classList.remove('hidden');
+                    toggle.querySelector('.fa-sun').classList.add('hidden');
+                }
             });
         }
         if (statusChart) {
@@ -641,17 +645,19 @@
     }
 
     themeToggles.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const currentTheme = localStorage.getItem('color-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            localStorage.setItem('color-theme', newTheme);
-            applyTheme(newTheme);
-        });
+        if(btn) {
+            btn.addEventListener('click', function() {
+                const isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+                applyTheme(isDark ? 'dark' : 'light');
+            });
+        }
     });
 
     window.addEventListener('load', () => {
-        const savedTheme = localStorage.getItem('color-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        applyTheme(savedTheme);
+        const savedTheme = localStorage.getItem('color-theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
 
         listenToCollection('Computers', { isInventory: true });
         listenToCollection('Monitors', { isInventory: true });

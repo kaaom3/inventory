@@ -120,35 +120,132 @@
                 </button>
             </div>
         </div>
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-blue-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Desktops</p><p id="stat-total-desktops" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-desktops-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-desktops-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-desktops-repair" class="font-medium text-orange-500">0</span></div></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Laptops</p><p id="stat-total-laptops" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-laptops-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-laptops-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-laptops-repair" class="font-medium text-orange-500">0</span></div></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-full"><i class="fab fa-apple text-2xl text-gray-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total MacBooks</p><p id="stat-total-macbooks" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-macbooks-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-macbooks-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-macbooks-repair" class="font-medium text-orange-500">0</span></div></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-green-100 dark:bg-green-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Monitors</p><p id="stat-total-monitors" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-monitors-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-monitors-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-monitors-repair" class="font-medium text-orange-500">0</span></div></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-red-100 dark:bg-red-900/50 p-3 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Audio</p><p id="stat-total-audio" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-audio-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-audio-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-audio-repair" class="font-medium text-orange-500">0</span></div></div></div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"><div class="flex items-center space-x-4 mb-4"><div class="bg-purple-100 dark:bg-purple-900/50 p-3 rounded-full"><i class="fas fa-keyboard text-2xl text-purple-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Accessories</p><p id="stat-total-accessories" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div><div class="space-y-2 text-sm"><div class="flex justify-between pt-2 border-t dark:border-gray-700 mt-2"><span class="text-green-500">Active:</span><span id="stat-accessories-active" class="font-medium text-green-500">0</span></div><div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="stat-accessories-on-loan" class="font-medium text-yellow-500">0</span></div><div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="stat-accessories-repair" class="font-medium text-orange-500">0</span></div></div></div>
+        
+        <!-- Overall Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                <div class="bg-blue-100 dark:bg-blue-900/50 p-4 rounded-full"><i class="fas fa-hdd text-2xl text-blue-500"></i></div>
+                <div><p class="text-sm text-gray-500 dark:text-gray-400">Total Devices</p><p id="stat-total-devices" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                <div class="bg-yellow-100 dark:bg-yellow-900/50 p-4 rounded-full"><i class="fas fa-user-clock text-2xl text-yellow-500"></i></div>
+                <div><p class="text-sm text-gray-500 dark:text-gray-400">On Loan</p><p id="stat-total-onloan" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                <div class="bg-orange-100 dark:bg-orange-900/50 p-4 rounded-full"><i class="fas fa-tools text-2xl text-orange-500"></i></div>
+                <div><p class="text-sm text-gray-500 dark:text-gray-400">In Repair</p><p id="stat-total-repair" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+            </div>
+             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                <div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-full"><i class="fas fa-box-open text-2xl text-gray-500"></i></div>
+                <div><p class="text-sm text-gray-500 dark:text-gray-400">In Storage</p><p id="stat-total-storage" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                <div class="bg-pink-100 dark:bg-pink-900/50 p-4 rounded-full"><i class="fas fa-heart-broken text-2xl text-pink-500"></i></div>
+                <div><p class="text-sm text-gray-500 dark:text-gray-400">Damaged</p><p id="stat-total-damaged" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                <div class="bg-red-100 dark:bg-red-900/50 p-4 rounded-full"><i class="fas fa-trash-alt text-2xl text-red-500"></i></div>
+                <div><p class="text-sm text-gray-500 dark:text-gray-400">Disposed</p><p id="stat-total-disposed" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4 col-span-1 md:col-span-2">
+                <div class="bg-red-100 dark:bg-red-900/50 p-4 rounded-full"><i class="fas fa-exclamation-triangle text-2xl text-red-500"></i></div>
+                <div><p class="text-sm text-gray-500 dark:text-gray-400">Warranty Ending Soon (30 days)</p><p id="stat-total-warranty-ending" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+            </div>
         </div>
-        <!-- Charts and Recent Activity -->
+
+        <!-- KPI Cards by Category -->
+        <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Category Overview</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+            <!-- Computers -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <div class="flex items-center space-x-4 mb-4"><div class="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Computers</p><p id="cat-total-computers" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
+                <div class="space-y-2 text-sm pt-2 border-t dark:border-gray-700 mt-2">
+                    <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-computers-active" class="font-medium text-green-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-computers-on-loan" class="font-medium text-yellow-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-computers-repair" class="font-medium text-orange-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-computers-storage" class="font-medium text-gray-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-computers-damaged" class="font-medium text-pink-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-computers-disposed" class="font-medium text-red-500">0</span></div>
+                </div>
+            </div>
+            <!-- Monitors -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <div class="flex items-center space-x-4 mb-4"><div class="bg-green-100 dark:bg-green-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Monitors</p><p id="cat-total-monitors" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
+                <div class="space-y-2 text-sm pt-2 border-t dark:border-gray-700 mt-2">
+                    <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-monitors-active" class="font-medium text-green-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-monitors-on-loan" class="font-medium text-yellow-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-monitors-repair" class="font-medium text-orange-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-monitors-storage" class="font-medium text-gray-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-monitors-damaged" class="font-medium text-pink-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-monitors-disposed" class="font-medium text-red-500">0</span></div>
+                </div>
+            </div>
+            <!-- Audio -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <div class="flex items-center space-x-4 mb-4"><div class="bg-red-100 dark:bg-red-900/50 p-3 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Audio</p><p id="cat-total-audio" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
+                <div class="space-y-2 text-sm pt-2 border-t dark:border-gray-700 mt-2">
+                    <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-audio-active" class="font-medium text-green-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-audio-on-loan" class="font-medium text-yellow-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-audio-repair" class="font-medium text-orange-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-audio-storage" class="font-medium text-gray-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-audio-damaged" class="font-medium text-pink-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-audio-disposed" class="font-medium text-red-500">0</span></div>
+                </div>
+            </div>
+            <!-- Accessories -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <div class="flex items-center space-x-4 mb-4"><div class="bg-purple-100 dark:bg-purple-900/50 p-3 rounded-full"><i class="fas fa-keyboard text-2xl text-purple-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Accessories</p><p id="cat-total-accessories" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
+                <div class="space-y-2 text-sm pt-2 border-t dark:border-gray-700 mt-2">
+                    <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-accessories-active" class="font-medium text-green-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-accessories-on-loan" class="font-medium text-yellow-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-accessories-repair" class="font-medium text-orange-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-accessories-storage" class="font-medium text-gray-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-accessories-damaged" class="font-medium text-pink-500">0</span></div>
+                    <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-accessories-disposed" class="font-medium text-red-500">0</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts and Activities -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Device Status</h3>
+                <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Device Status Distribution</h3>
                 <canvas id="statusChart"></canvas>
             </div>
             <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                 <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Recent Loan Activity</h3>
+                 <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Recent Activities</h3>
                  <div class="overflow-x-auto">
                     <table class="min-w-full">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Borrower</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Device</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Activity</th>
+                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">User</th>
                                 <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Date</th>
-                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Status</th>
                             </tr>
                         </thead>
-                        <tbody id="recent-loans-table" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                        <tbody id="recent-activities-table" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
                     </table>
                  </div>
+            </div>
+        </div>
+
+        <!-- Warranty Watchlist -->
+        <div class="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+            <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Warranty Watchlist (Ending in 30 days)</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Device Name</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Serial Number</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Category</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Expires On</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Days Left</th>
+                        </tr>
+                    </thead>
+                    <tbody id="warranty-watchlist-table" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                </table>
             </div>
         </div>
       </div>
@@ -612,65 +709,66 @@
         });
     }
     
+    // REVAMPED: updateDashboard function
     function updateDashboard() {
         const computers = allData['Computers'] || [];
         const monitors = allData['Monitors'] || [];
         const audio = allData['Audio'] || [];
         const accessories = allData['Accessory'] || [];
         const allDevices = [...computers, ...monitors, ...audio, ...accessories];
-        
-        document.getElementById('stat-total-monitors').textContent = monitors.length;
-        document.getElementById('stat-total-accessories').textContent = accessories.length;
-        document.getElementById('stat-total-audio').textContent = audio.length;
-        
-        const desktops = computers.filter(c => c.Type === 'Desktop');
-        const laptops = computers.filter(c => c.Type === 'Laptop');
-        const macbooks = computers.filter(c => c.Type === 'MacBook');
-        
-        document.getElementById('stat-total-desktops').textContent = desktops.length;
-        document.getElementById('stat-desktops-active').textContent = desktops.filter(d => d.Status === 'Active').length;
-        document.getElementById('stat-desktops-on-loan').textContent = desktops.filter(d => d.Status === 'On Loan').length;
-        document.getElementById('stat-desktops-repair').textContent = desktops.filter(d => d.Status === 'Repair').length;
-        
-        document.getElementById('stat-total-laptops').textContent = laptops.length;
-        document.getElementById('stat-laptops-active').textContent = laptops.filter(l => l.Status === 'Active').length;
-        document.getElementById('stat-laptops-on-loan').textContent = laptops.filter(l => l.Status === 'On Loan').length;
-        document.getElementById('stat-laptops-repair').textContent = laptops.filter(l => l.Status === 'Repair').length;
+        const loanHistory = allData['LoanHistory'] || [];
 
-        document.getElementById('stat-total-macbooks').textContent = macbooks.length;
-        document.getElementById('stat-macbooks-active').textContent = macbooks.filter(l => l.Status === 'Active').length;
-        document.getElementById('stat-macbooks-on-loan').textContent = macbooks.filter(l => l.Status === 'On Loan').length;
-        document.getElementById('stat-macbooks-repair').textContent = macbooks.filter(l => l.Status === 'Repair').length;
-
-        document.getElementById('stat-monitors-active').textContent = monitors.filter(m => m.Status === 'Active').length;
-        document.getElementById('stat-monitors-on-loan').textContent = monitors.filter(m => m.Status === 'On Loan').length;
-        document.getElementById('stat-monitors-repair').textContent = monitors.filter(m => m.Status === 'Repair').length;
-
-        document.getElementById('stat-audio-active').textContent = audio.filter(a => a.Status === 'Active').length;
-        document.getElementById('stat-audio-on-loan').textContent = audio.filter(a => a.Status === 'On Loan').length;
-        document.getElementById('stat-audio-repair').textContent = audio.filter(a => a.Status === 'Repair').length;
-
-        document.getElementById('stat-accessories-active').textContent = accessories.filter(a => a.Status === 'Active').length;
-        document.getElementById('stat-accessories-on-loan').textContent = accessories.filter(a => a.Status === 'On Loan').length;
-        document.getElementById('stat-accessories-repair').textContent = accessories.filter(a => a.Status === 'Repair').length;
+        // 1. Update Overall Summary
+        const getCountByStatus = (status) => allDevices.filter(d => d.Status === status).length;
         
+        const today = new Date();
+        const thirtyDaysFromNow = new Date();
+        thirtyDaysFromNow.setDate(today.getDate() + 30);
+        
+        const warrantyEndingSoon = allDevices.filter(d => {
+            if (!d.WarrantyEndDate) return false;
+            const endDate = new Date(d.WarrantyEndDate);
+            return endDate >= today && endDate <= thirtyDaysFromNow;
+        });
+
+        document.getElementById('stat-total-devices').textContent = allDevices.length;
+        document.getElementById('stat-total-onloan').textContent = getCountByStatus('On Loan');
+        document.getElementById('stat-total-repair').textContent = getCountByStatus('Repair');
+        document.getElementById('stat-total-storage').textContent = getCountByStatus('Storage');
+        document.getElementById('stat-total-damaged').textContent = getCountByStatus('Damaged');
+        document.getElementById('stat-total-disposed').textContent = getCountByStatus('Disposed');
+        document.getElementById('stat-total-warranty-ending').textContent = warrantyEndingSoon.length;
+
+        // 2. Update Category Cards
+        const updateCategoryCard = (catName, data) => {
+            document.getElementById(`cat-total-${catName}`).textContent = data.length;
+            const getCatCount = (status) => data.filter(d => d.Status === status).length;
+            document.getElementById(`cat-${catName}-active`).textContent = getCatCount('Active');
+            document.getElementById(`cat-${catName}-on-loan`).textContent = getCatCount('On Loan');
+            document.getElementById(`cat-${catName}-repair`).textContent = getCatCount('Repair');
+            document.getElementById(`cat-${catName}-storage`).textContent = getCatCount('Storage');
+            document.getElementById(`cat-${catName}-damaged`).textContent = getCatCount('Damaged');
+            document.getElementById(`cat-${catName}-disposed`).textContent = getCatCount('Disposed');
+        };
+        updateCategoryCard('computers', computers);
+        updateCategoryCard('monitors', monitors);
+        updateCategoryCard('audio', audio);
+        updateCategoryCard('accessories', accessories);
+
+        // 3. Update Status Chart
         const statusCounts = allDevices.reduce((acc, device) => {
             if(device.Status) {
                acc[device.Status] = (acc[device.Status] || 0) + 1;
             }
             return acc;
         }, {});
-        
         renderStatusChart(statusCounts);
 
-        const recentLoans = (allData['LoanHistory'] || [])
-            .sort((a, b) => {
-                const dateA = a.LoanDate?.toDate ? a.LoanDate.toDate() : new Date(a.LoanDate || 0);
-                const dateB = b.LoanDate?.toDate ? b.LoanDate.toDate() : new Date(b.LoanDate || 0);
-                return dateB - dateA;
-            })
-            .slice(0, 5);
-        renderRecentLoans(recentLoans);
+        // 4. Update Recent Activities Table
+        renderRecentActivities(loanHistory, allDevices);
+        
+        // 5. Update Warranty Watchlist Table
+        renderWarrantyWatchlist(warrantyEndingSoon);
     }
     
     function renderStatusChart(statusData) {
@@ -707,28 +805,74 @@
         }
     }
 
-    function renderRecentLoans(loans) {
-        const tbody = document.getElementById('recent-loans-table');
+    function renderRecentActivities(loanData, allDevices) {
+        const tbody = document.getElementById('recent-activities-table');
         tbody.innerHTML = '';
-        if (loans.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-gray-500 dark:text-gray-400 py-4">No recent activity</td></tr>`;
+
+        const activities = loanData.map(loan => {
+            const activityDate = loan.ReturnDate ? loan.ReturnDate : loan.LoanDate;
+            return {
+                ...loan,
+                activityType: loan.ReturnDate ? 'Return' : 'Loan',
+                activityTimestamp: activityDate?.toDate ? activityDate.toDate() : new Date(0)
+            };
+        }).sort((a, b) => b.activityTimestamp - a.activityTimestamp).slice(0, 5);
+
+        if (activities.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 dark:text-gray-400 py-4">No recent activity</td></tr>`;
             return;
         }
-        loans.forEach(loan => {
-            const loanDateObj = loan.LoanDate?.toDate ? loan.LoanDate.toDate() : new Date(loan.LoanDate || null);
-            const loanDate = !isNaN(loanDateObj) ? loanDateObj.toLocaleDateString('th-TH') : 'N/A';
-            const statusColor = loan.Status === 'On Loan' ? 'text-yellow-500' : 'text-green-500';
+
+        activities.forEach(act => {
+            const config = collectionConfigs[act.DeviceType];
+            const device = allDevices.find(d => d[config?.serialField] === act.DeviceSerial);
+            const deviceName = device ? device[config.nameField] : act.DeviceSerial;
+            
+            const activityHtml = act.activityType === 'Loan'
+                ? `<span class="font-semibold text-yellow-500">Loaned</span>`
+                : `<span class="font-semibold text-green-500">Returned</span>`;
+
             tbody.innerHTML += `
                 <tr class="text-sm">
-                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${loan.BorrowerName}</td>
-                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${loanDate}</td>
-                    <td class="px-4 py-2 font-semibold ${statusColor}">${loan.Status}</td>
+                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${deviceName}</td>
+                    <td class="px-4 py-2">${activityHtml}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.BorrowerName}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.activityTimestamp.toLocaleDateString('th-TH')}</td>
                 </tr>
             `;
         });
     }
 
-    // ✅ FIXED: Added prompt for confirmation
+    function renderWarrantyWatchlist(devices) {
+        const tbody = document.getElementById('warranty-watchlist-table');
+        tbody.innerHTML = '';
+        if (devices.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500 dark:text-gray-400 py-4">No devices with warranty expiring soon.</td></tr>`;
+            return;
+        }
+        
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        devices.forEach(device => {
+            const config = Object.values(collectionConfigs).find(c => device[c.serialField]);
+            const category = Object.keys(collectionConfigs).find(key => allData[key].some(d => d.id === device.id)) || 'N/A';
+            const endDate = new Date(device.WarrantyEndDate);
+            const diffTime = endDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            tbody.innerHTML += `
+                <tr class="text-sm">
+                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${device[config.nameField]}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device[config.serialField]}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${category}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device.WarrantyEndDate}</td>
+                    <td class="px-4 py-2 font-semibold text-red-500">${diffDays} days</td>
+                </tr>
+            `;
+        });
+    }
+
     window.resetAllStatusToActive = async function() {
         const confirmationText = "RESET";
         const userInput = prompt(`This is a destructive action. To confirm, please type "${confirmationText}" in the box below.`);

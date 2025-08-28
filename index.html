@@ -251,10 +251,30 @@
       </div>
 
       <!-- Inventory Pages -->
-      <div id="computers-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Computer Inventory</h2><button onclick="openModal('add', 'Computers')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" id="computersSearchInput" onkeyup="filterTable('ComputersTable', this.value)" placeholder="Search computers..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="ComputersTable" class="min-w-full"></table></div></div></div>
-      <div id="monitors-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Monitor Inventory</h2><button onclick="openModal('add', 'Monitors')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('MonitorsTable', this.value)" placeholder="Search monitors..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="MonitorsTable" class="min-w-full"></table></div></div></div>
-      <div id="audio-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Audio Inventory</h2><button onclick="openModal('add', 'Audio')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" onkeyup="filterTable('AudioTable', this.value)" placeholder="Search audio..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AudioTable" class="min-w-full"></table></div></div></div>
-      <div id="accessory-page" class="page-content"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Accessory Inventory</h2><button onclick="openModal('add', 'Accessory')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div><div class="mb-4"><input type="text" id="accessorySearchInput" onkeyup="filterTable('AccessoryTable', this.value)" placeholder="Search accessories..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AccessoryTable" class="min-w-full"></table></div></div></div>
+      <div id="computers-page" class="page-content">
+        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Computer Inventory</h2><button onclick="openModal('add', 'Computers')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
+        <div class="mb-4"><input type="text" id="computersSearchInput" onkeyup="handleSearch('Computers', this.value)" placeholder="Search computers..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="ComputersTable" class="min-w-full"></table></div></div>
+        <div id="ComputersPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
+      </div>
+      <div id="monitors-page" class="page-content">
+        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Monitor Inventory</h2><button onclick="openModal('add', 'Monitors')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
+        <div class="mb-4"><input type="text" onkeyup="handleSearch('Monitors', this.value)" placeholder="Search monitors..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="MonitorsTable" class="min-w-full"></table></div></div>
+        <div id="MonitorsPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
+      </div>
+      <div id="audio-page" class="page-content">
+        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Audio Inventory</h2><button onclick="openModal('add', 'Audio')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
+        <div class="mb-4"><input type="text" onkeyup="handleSearch('Audio', this.value)" placeholder="Search audio..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AudioTable" class="min-w-full"></table></div></div>
+        <div id="AudioPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
+      </div>
+      <div id="accessory-page" class="page-content">
+        <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Accessory Inventory</h2><button onclick="openModal('add', 'Accessory')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
+        <div class="mb-4"><input type="text" id="accessorySearchInput" onkeyup="handleSearch('Accessory', this.value)" placeholder="Search accessories..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AccessoryTable" class="min-w-full"></table></div></div>
+        <div id="AccessoryPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
+      </div>
       
       <!-- Software Page -->
       <div id="software-page" class="page-content">
@@ -288,6 +308,7 @@
     let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Software: [], Location: [], Accessory: [] };
     let currentEdit = { mode: null, collection: null, id: null };
     let statusChart;
+    let paginationState = {};
 
     const collectionConfigs = {
         Computers: { 
@@ -358,27 +379,13 @@
         document.getElementById(pageId).style.display = 'block';
         
         if (pageName === 'Software') buildSoftwareCards(allData.Software);
-        if (pageName === 'Computers') {
-            const searchInput = document.getElementById('computersSearchInput');
-            let filteredData = allData.Computers;
-            if (filterValue) {
-                searchInput.value = filterValue;
-                filteredData = allData.Computers.filter(item => item.Type === filterValue);
-            } else {
-                searchInput.value = '';
+        if (pageName === 'Computers' || pageName === 'Monitors' || pageName === 'Audio' || pageName === 'Accessory') {
+            const state = paginationState[pageName];
+            state.filterText = ''; // Reset search on page load
+            if (document.getElementById(`${pageName.toLowerCase()}SearchInput`)) {
+                 document.getElementById(`${pageName.toLowerCase()}SearchInput`).value = '';
             }
-            buildTable('Computers', filteredData);
-        }
-        if (pageName === 'Accessory') {
-            const searchInput = document.getElementById('accessorySearchInput');
-            let filteredData = allData.Accessory;
-            if (filterValue) {
-                searchInput.value = filterValue;
-                filteredData = allData.Accessory.filter(item => item.AccessoryType === filterValue);
-            } else {
-                searchInput.value = '';
-            }
-            buildTable('Accessory', filteredData);
+            buildTable(pageName);
         }
 
         if (window.innerWidth < 768) {
@@ -386,10 +393,24 @@
         }
     };
 
-    function buildTable(collectionName, data, errorMessage = null) {
+    function buildTable(collectionName, errorMessage = null) {
         const table = document.getElementById(collectionName + 'Table');
         if (!table) return;
-        table.innerHTML = '';
+
+        const state = paginationState[collectionName];
+        const fullData = allData[collectionName] || [];
+
+        const filter = state.filterText.toUpperCase();
+        const filteredData = filter
+            ? fullData.filter(item => JSON.stringify(Object.values(item)).toUpperCase().includes(filter))
+            : fullData;
+
+        const totalRows = filteredData.length;
+        const startIndex = (state.currentPage - 1) * state.rowsPerPage;
+        const endIndex = startIndex + state.rowsPerPage;
+        const paginatedData = filteredData.slice(startIndex, endIndex);
+
+        table.innerHTML = ''; // Clear existing table content
         const { headers, nameField, serialField } = collectionConfigs[collectionName];
         const displayHeaders = [...headers, 'Actions'];
         const thead = document.createElement('thead');
@@ -398,10 +419,13 @@
         table.appendChild(thead);
         const tbody = document.createElement('tbody');
         tbody.className = 'divide-y divide-gray-200 dark:divide-gray-700';
-        if (errorMessage) tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-red-600" colspan="${displayHeaders.length}">${errorMessage}</td></tr>`;
-        else if (data.length === 0) tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-gray-500 dark:text-gray-400" colspan="${displayHeaders.length}">No data found.</td></tr>`;
-        else {
-            data.forEach(item => {
+        
+        if (errorMessage) {
+            tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-red-600" colspan="${displayHeaders.length}">${errorMessage}</td></tr>`;
+        } else if (paginatedData.length === 0) {
+            tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-gray-500 dark:text-gray-400" colspan="${displayHeaders.length}">No data found.</td></tr>`;
+        } else {
+            paginatedData.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors";
                 headers.forEach(header => {
@@ -437,7 +461,60 @@
             });
         }
         table.appendChild(tbody);
+        renderPaginationControls(collectionName, totalRows);
     }
+
+    function renderPaginationControls(collectionName, totalRows) {
+        const container = document.getElementById(collectionName + 'Pagination');
+        if (!container) return;
+
+        const state = paginationState[collectionName];
+        const totalPages = Math.ceil(totalRows / state.rowsPerPage);
+        const startItem = totalRows > 0 ? (state.currentPage - 1) * state.rowsPerPage + 1 : 0;
+        const endItem = Math.min(startItem + state.rowsPerPage - 1, totalRows);
+
+        container.innerHTML = `
+            <div class="text-sm text-gray-700 dark:text-gray-300">
+                Showing <span class="font-semibold">${startItem}</span> to <span class="font-semibold">${endItem}</span> of <span class="font-semibold">${totalRows}</span> results
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <label for="${collectionName}RowsPerPage" class="text-sm font-medium">Rows per page:</label>
+                    <select id="${collectionName}RowsPerPage" onchange="changeRowsPerPage('${collectionName}', this)" class="rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="10" ${state.rowsPerPage == 10 ? 'selected' : ''}>10</option>
+                        <option value="25" ${state.rowsPerPage == 25 ? 'selected' : ''}>25</option>
+                        <option value="50" ${state.rowsPerPage == 50 ? 'selected' : ''}>50</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="changePage('${collectionName}', -1)" ${state.currentPage === 1 ? 'disabled' : ''} class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-700 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"><i class="fas fa-chevron-left text-xs"></i></button>
+                    <span class="text-sm font-medium">Page ${state.currentPage} of ${totalPages > 0 ? totalPages : 1}</span>
+                    <button onclick="changePage('${collectionName}', 1)" ${state.currentPage >= totalPages ? 'disabled' : ''} class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-700 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"><i class="fas fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        `;
+    }
+
+    window.changePage = (collectionName, direction) => {
+        const state = paginationState[collectionName];
+        const newPage = state.currentPage + direction;
+        state.currentPage = newPage;
+        buildTable(collectionName);
+    };
+
+    window.changeRowsPerPage = (collectionName, selectElement) => {
+        const state = paginationState[collectionName];
+        state.rowsPerPage = parseInt(selectElement.value, 10);
+        state.currentPage = 1; // Reset to first page
+        buildTable(collectionName);
+    };
+
+    window.handleSearch = (collectionName, filterText) => {
+        const state = paginationState[collectionName];
+        state.filterText = filterText;
+        state.currentPage = 1; // Reset to page 1 on new search
+        buildTable(collectionName);
+    };
 
     function buildLoanHistoryCards(data, errorMessage = null) {
         const container = document.getElementById('LoanHistoryContainer');
@@ -564,12 +641,6 @@
             container.appendChild(card);
         });
     }
-
-    window.filterTable = (tableId, filterText) => {
-        const rows = document.getElementById(tableId).getElementsByTagName("tr");
-        const filter = filterText.toUpperCase();
-        for (let i = 1; i < rows.length; i++) rows[i].style.display = rows[i].textContent.toUpperCase().includes(filter) ? "" : "none";
-    };
     
     window.filterLoanHistory = (filterText) => {
         const cards = document.querySelectorAll('#LoanHistoryContainer .loan-card');
@@ -692,7 +763,7 @@
         onSnapshot(collection(db, collectionName), (snapshot) => {
             allData[collectionName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             if (config.isInventory) {
-                buildTable(collectionName, allData[collectionName]);
+                buildTable(collectionName);
             } else if (collectionName === 'Software') {
                 buildSoftwareCards(allData[collectionName]);
             } else if (collectionName === 'LoanHistory') {
@@ -703,13 +774,12 @@
             console.error(`Error listening to ${collectionName}: `, error);
             let msg = `Error fetching data for ${collectionName}.`;
             if (error.code === 'permission-denied') msg = `Permission Denied. Check Firestore Rules.`;
-            if (config.isInventory) buildTable(collectionName, [], msg);
+            if (config.isInventory) buildTable(collectionName, msg);
             else if (collectionName === 'LoanHistory') buildLoanHistoryCards([], msg);
             else if (collectionName === 'Software') buildSoftwareCards([], msg);
         });
     }
     
-    // REVAMPED: updateDashboard function
     function updateDashboard() {
         const computers = allData['Computers'] || [];
         const monitors = allData['Monitors'] || [];
@@ -718,7 +788,6 @@
         const allDevices = [...computers, ...monitors, ...audio, ...accessories];
         const loanHistory = allData['LoanHistory'] || [];
 
-        // 1. Update Overall Summary
         const getCountByStatus = (status) => allDevices.filter(d => d.Status === status).length;
         
         const today = new Date();
@@ -739,7 +808,6 @@
         document.getElementById('stat-total-disposed').textContent = getCountByStatus('Disposed');
         document.getElementById('stat-total-warranty-ending').textContent = warrantyEndingSoon.length;
 
-        // 2. Update Category Cards
         const updateCategoryCard = (catName, data) => {
             document.getElementById(`cat-total-${catName}`).textContent = data.length;
             const getCatCount = (status) => data.filter(d => d.Status === status).length;
@@ -755,7 +823,6 @@
         updateCategoryCard('audio', audio);
         updateCategoryCard('accessories', accessories);
 
-        // 3. Update Status Chart
         const statusCounts = allDevices.reduce((acc, device) => {
             if(device.Status) {
                acc[device.Status] = (acc[device.Status] || 0) + 1;
@@ -764,10 +831,7 @@
         }, {});
         renderStatusChart(statusCounts);
 
-        // 4. Update Recent Activities Table
         renderRecentActivities(loanHistory, allDevices);
-        
-        // 5. Update Warranty Watchlist Table
         renderWarrantyWatchlist(warrantyEndingSoon);
     }
     
@@ -790,7 +854,7 @@
                     datasets: [{
                         label: 'Device Status',
                         data: data,
-                        backgroundColor: ['#22C55E', '#F59E0B', '#F97316', '#3B82F6', '#EF4444', '#6B7280'],
+                        backgroundColor: ['#22C55E', '#F59E0B', '#F97316', '#3B82F6', '#EF4444', '#6B7280', '#EC4899'],
                         borderColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
                         borderWidth: 2
                     }]
@@ -825,8 +889,8 @@
 
         activities.forEach(act => {
             const config = collectionConfigs[act.DeviceType];
-            const device = allDevices.find(d => d[config?.serialField] === act.DeviceSerial);
-            const deviceName = device ? device[config.nameField] : act.DeviceSerial;
+            const device = allDevices.find(d => config && d[config.serialField] === act.DeviceSerial);
+            const deviceName = device && config ? device[config.nameField] : act.DeviceSerial;
             
             const activityHtml = act.activityType === 'Loan'
                 ? `<span class="font-semibold text-yellow-500">Loaned</span>`
@@ -939,6 +1003,14 @@
         const savedTheme = localStorage.getItem('color-theme');
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
+
+        Object.keys(collectionConfigs).forEach(collectionName => {
+            paginationState[collectionName] = {
+                currentPage: 1,
+                rowsPerPage: 10,
+                filterText: ''
+            };
+        });
 
         listenToCollection('Computers', { isInventory: true });
         listenToCollection('Monitors', { isInventory: true });

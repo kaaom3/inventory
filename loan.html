@@ -14,17 +14,26 @@
     .modal { transition: opacity 0.3s ease; }
     .modal-content { transition: all 0.3s ease; }
     .modal.opacity-0 .modal-content { transform: scale(0.95); }
-    #qr-reader { border: 2px solid #e5e7eb; border-radius: 0.5rem; overflow: hidden; }
+    #qr-reader { border: 2px solid #e5e7eb; }
+    .dark #qr-reader { border-color: #4b5563; }
     .tab-button.active { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff; }
+    .dark .tab-button.active { border-color: #6366f1; color: #e0e7ff; background-color: rgba(79, 70, 229, 0.2); }
     .device-card.selected { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); background-color: #eff6ff; }
+    .dark .device-card.selected { background-color: #1e3a8a; border-color: #3b82f6; }
     .device-card.selected .selected-icon { opacity: 1; }
     .selected-icon { opacity: 0; transition: opacity 0.2s ease-in-out; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <header class="bg-white shadow-sm p-4 flex items-center space-x-3">
-        <i class="fas fa-cubes text-2xl text-indigo-600"></i>
-        <h1 class="text-xl font-bold text-gray-800">Inventory Loan System</h1>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    <header class="bg-white dark:bg-gray-800 shadow-sm p-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <i class="fas fa-cubes text-2xl text-indigo-600"></i>
+            <h1 class="text-xl font-bold text-gray-800 dark:text-white">Inventory Loan System</h1>
+        </div>
+        <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none">
+            <i id="theme-toggle-dark-icon" class="fas fa-moon text-gray-500 dark:text-gray-400"></i>
+            <i id="theme-toggle-light-icon" class="fas fa-sun text-gray-500 dark:text-gray-400 hidden"></i>
+        </button>
     </header>
 
     <!-- Main Content Area -->
@@ -33,12 +42,12 @@
 
       <!-- Loan Page Content -->
       <div id="loan-page" class="page-content" style="display: none;">
-        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">ยืม-คืน อุปกรณ์</h2>
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">ยืม-คืน อุปกรณ์</h2>
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div class="lg:col-span-3 bg-white rounded-xl shadow-md p-6 space-y-4">
-                <div class="mb-4 border-b border-gray-200"><nav class="flex -mb-px space-x-4"><button onclick="switchLoanTab('scan', this)" class="tab-button active flex items-center whitespace-nowrap py-3 px-2 border-b-2 font-medium text-sm"><i class="fas fa-camera mr-2"></i>สแกน QR Code</button><button onclick="switchLoanTab('select', this)" class="tab-button flex items-center whitespace-nowrap py-3 px-2 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700"><i class="fas fa-list-ul mr-2"></i>เลือกจากรายการ</button></nav></div>
+            <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 space-y-4">
+                <div class="mb-4 border-b border-gray-200 dark:border-gray-700"><nav class="flex -mb-px space-x-4"><button onclick="switchLoanTab('scan', this)" class="tab-button active flex items-center whitespace-nowrap py-3 px-2 border-b-2 font-medium text-sm"><i class="fas fa-camera mr-2"></i>สแกน QR Code</button><button onclick="switchLoanTab('select', this)" class="tab-button flex items-center whitespace-nowrap py-3 px-2 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"><i class="fas fa-list-ul mr-2"></i>เลือกจากรายการ</button></nav></div>
                 <div id="scan-view">
-                    <div id="qr-reader" class="w-full max-w-sm mx-auto mb-2"></div>
+                    <div id="qr-reader" class="w-full max-w-sm mx-auto mb-2 rounded-lg overflow-hidden"></div>
                     <button id="start-scan-button" onclick="startScanning()" class="w-full mt-2 bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 flex items-center justify-center"><i class="fas fa-camera mr-2"></i>เริ่มการสแกน</button>
                 </div>
                 <div id="select-view" class="hidden space-y-6">
@@ -46,14 +55,14 @@
                     <div id="device-list-view" class="hidden"><button onclick="showCategorySelection()" class="mb-4 text-sm text-blue-600 hover:underline"><i class="fas fa-arrow-left mr-2"></i>ย้อนกลับ</button><div id="device-list-container"></div></div>
                 </div>
             </div>
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-                <h3 class="text-xl font-bold mb-4 text-gray-800">ตะกร้าการยืม</h3>
-                <div id="cart" class="space-y-2 border p-3 rounded-md min-h-[120px] bg-gray-50 mb-6"><p class="text-sm text-gray-500">ยังไม่มีอุปกรณ์ในตะกร้า</p></div>
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">ตะกร้าการยืม</h3>
+                <div id="cart" class="space-y-2 border dark:border-gray-700 p-3 rounded-md min-h-[120px] bg-gray-50 dark:bg-gray-700 mb-6"><p class="text-sm text-gray-500 dark:text-gray-400">ยังไม่มีอุปกรณ์ในตะกร้า</p></div>
                 <form id="loanForm" class="space-y-4">
-                    <div><label class="block text-sm font-medium text-gray-700">ชื่อผู้ยืม</label><input type="text" id="borrowerName" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                    <div><label class="block text-sm font-medium text-gray-700">กำหนดคืน</label><input type="date" id="dueDate" required class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
-                    <div><label class="block text-sm font-medium text-gray-700">หมายเหตุ</label><textarea id="loanNotes" rows="2" class="mt-1 block w-full px-3 py-2 border rounded-md"></textarea></div>
-                    <button type="button" onclick="submitLoan()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg">ยืนยันการยืม</button>
+                    <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300">ชื่อผู้ยืม</label><input type="text" id="borrowerName" required class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300">กำหนดคืน</label><input type="date" id="dueDate" required class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300">หมายเหตุ</label><textarea id="loanNotes" rows="2" class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></textarea></div>
+                    <button type="button" onclick="submitLoan()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700">ยืนยันการยืม</button>
                 </form>
             </div>
         </div>
@@ -62,9 +71,9 @@
   </div>
 
   <!-- Modals -->
-  <div id="receiptModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-md text-center"><h3 class="text-2xl font-bold text-green-600 mb-2">ยืมสำเร็จ!</h3><p class="text-gray-600 mb-6">กรุณาบันทึก QR Code นี้สำหรับคืนอุปกรณ์</p><canvas id="receiptQrCanvas" class="mx-auto border rounded-lg"></canvas><div id="receiptDetails" class="text-left mt-6 text-sm"></div><button onclick="hideModal('receiptModal')" class="mt-8 px-6 py-2 bg-indigo-600 text-white rounded-lg w-full">Close</button></div></div>
-  <div id="returnModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 class="text-xl font-semibold mb-4">คืนอุปกรณ์</h3><div id="returnDetails" class="text-sm mb-4 border-b pb-4"></div><h4 class="text-lg font-semibold text-gray-700 mb-3">รายการที่ยืม:</h4><div id="return-items-list" class="space-y-3"></div><div id="return-actions" class="mt-6 flex justify-end space-x-3"></div></div></div>
-  <div id="deviceDetailModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 id="deviceDetailTitle" class="text-2xl font-bold text-gray-800 mb-6">Device Details</h3><div id="deviceDetailContent" class="space-y-2 border-t border-b py-4"></div><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('deviceDetailModal')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button><button id="addToCartButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add to Cart</button></div></div></div>
+  <div id="receiptModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md text-center"><h3 class="text-2xl font-bold text-green-600 mb-2">ยืมสำเร็จ!</h3><p class="text-gray-600 dark:text-gray-300 mb-6">กรุณาบันทึก QR Code นี้สำหรับคืนอุปกรณ์</p><canvas id="receiptQrCanvas" class="mx-auto border rounded-lg"></canvas><div id="receiptDetails" class="text-left mt-6 text-sm"></div><button onclick="hideModal('receiptModal')" class="mt-8 px-6 py-2 bg-indigo-600 text-white rounded-lg w-full">Close</button></div></div>
+  <div id="returnModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 class="text-xl font-semibold mb-4">คืนอุปกรณ์</h3><div id="returnDetails" class="text-sm mb-4 border-b dark:border-gray-700 pb-4"></div><h4 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-3">รายการที่ยืม:</h4><div id="return-items-list" class="space-y-3"></div><div id="return-actions" class="mt-6 flex justify-end space-x-3"></div></div></div>
+  <div id="deviceDetailModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-lg"><h3 id="deviceDetailTitle" class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Device Details</h3><div id="deviceDetailContent" class="space-y-2 border-t border-b dark:border-gray-700 py-4"></div><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('deviceDetailModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button><button id="addToCartButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add to Cart</button></div></div></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -74,14 +83,15 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [] };
+    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Accessory: [] };
     let cartItems = [];
     let html5QrCode;
 
     const collectionConfigs = {
         Computers: { nameField: 'ComputerName', serialField: 'SerialNumber', icon: 'fa-laptop' },
         Monitors: { nameField: 'Model', serialField: 'MonitorSerial', icon: 'fa-desktop' },
-        Audio: { nameField: 'ItemName', serialField: 'SerialNumber', icon: 'fa-volume-up' }
+        Audio: { nameField: 'ItemName', serialField: 'SerialNumber', icon: 'fa-volume-up' },
+        Accessory: { nameField: 'Model', serialField: 'SerialNumber', icon: 'fa-keyboard' }
     };
     
     window.hideModal = (modalId) => document.getElementById(modalId).classList.add('opacity-0', 'pointer-events-none');
@@ -95,11 +105,11 @@
 
     function populateCategories() {
         const container = document.getElementById('category-selection');
-        container.innerHTML = `<h3 class="text-lg font-semibold mb-3 text-gray-700">เลือกหมวดหมู่อุปกรณ์</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+        container.innerHTML = `<h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">เลือกหมวดหมู่อุปกรณ์</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
         for (const key in collectionConfigs) {
             const config = collectionConfigs[key];
             const availableItems = allData[key].filter(item => item.Status === 'Active').length;
-            container.firstElementChild.innerHTML += `<div class="border rounded-lg p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 cursor-pointer" onclick="showDeviceCategory('${key}')"><i class="fas ${config.icon} text-4xl text-blue-500 mb-2"></i><p class="font-semibold text-gray-800">${key}</p><p class="text-xs text-gray-500">${availableItems} items available</p></div>`;
+            container.firstElementChild.innerHTML += `<div class="border dark:border-gray-700 rounded-lg p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onclick="showDeviceCategory('${key}')"><i class="fas ${config.icon} text-4xl text-blue-500 mb-2"></i><p class="font-semibold text-gray-800 dark:text-gray-200">${key}</p><p class="text-xs text-gray-500 dark:text-gray-400">${availableItems} items available</p></div>`;
         }
         container.innerHTML += `</div>`;
     }
@@ -114,10 +124,10 @@
             let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
             availableItems.forEach(item => {
                 const isSelected = cartItems.some(c => c.id === item.id);
-                html += `<div class="device-card border rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 cursor-pointer ${isSelected ? 'selected' : ''}" onclick="toggleCartItem(this, '${collectionName}', '${item.id}')"><i class="fas ${collectionConfigs[collectionName].icon} text-2xl text-gray-400"></i><div class="flex-1"><p class="font-semibold text-sm text-gray-800">${item[collectionConfigs[collectionName].nameField]}</p><p class="text-xs text-gray-500">SN: ${item[collectionConfigs[collectionName].serialField]}</p></div><i class="fas fa-check-circle text-blue-500 text-xl selected-icon"></i></div>`;
+                html += `<div class="device-card border dark:border-gray-700 rounded-lg p-3 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${isSelected ? 'selected' : ''}" onclick="toggleCartItem(this, '${collectionName}', '${item.id}')"><i class="fas ${collectionConfigs[collectionName].icon} text-2xl text-gray-400"></i><div class="flex-1"><p class="font-semibold text-sm text-gray-800 dark:text-gray-200">${item[collectionConfigs[collectionName].nameField]}</p><p class="text-xs text-gray-500 dark:text-gray-400">SN: ${item[collectionConfigs[collectionName].serialField]}</p></div><i class="fas fa-check-circle text-blue-500 text-xl selected-icon"></i></div>`;
             });
             container.innerHTML = html + `</div>`;
-        } else container.innerHTML = `<p class="text-sm text-gray-500">No devices available.</p>`;
+        } else container.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400">No devices available.</p>`;
     };
 
     window.showCategorySelection = () => {
@@ -195,7 +205,7 @@
         const headers = ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyEndDate'];
         headers.forEach(header => {
             if(item[header]) {
-                 content.innerHTML += `<div class="flex justify-between border-b py-2"><span class="text-gray-500">${header}</span><span class="font-semibold text-gray-800">${item[header]}</span></div>`;
+                 content.innerHTML += `<div class="flex justify-between border-b dark:border-gray-700 py-2"><span class="text-gray-500 dark:text-gray-400">${header}</span><span class="font-semibold text-gray-800 dark:text-gray-200">${item[header]}</span></div>`;
             }
         });
 
@@ -218,10 +228,10 @@
 
     function renderCart() {
         const cartDiv = document.getElementById('cart');
-        cartDiv.innerHTML = cartItems.length === 0 ? '<p class="text-sm text-gray-500">ยังไม่มีอุปกรณ์ในตะกร้า</p>' : '';
+        cartDiv.innerHTML = cartItems.length === 0 ? '<p class="text-sm text-gray-500 dark:text-gray-400">ยังไม่มีอุปกรณ์ในตะกร้า</p>' : '';
         cartItems.forEach((item, index) => {
             const name = item.ComputerName || item.Model || item.ItemName;
-            cartDiv.innerHTML += `<div class="flex justify-between items-center bg-gray-100 p-2 rounded"><span class="text-sm">${name}</span><button type="button" onclick="removeFromCart(${index})" class="text-red-500 font-bold">X</button></div>`;
+            cartDiv.innerHTML += `<div class="flex justify-between items-center bg-gray-100 dark:bg-gray-600 p-2 rounded"><span class="text-sm">${name}</span><button type="button" onclick="removeFromCart(${index})" class="text-red-500 font-bold">X</button></div>`;
         });
     }
     
@@ -290,7 +300,7 @@
         const itemsList = document.getElementById('return-items-list');
         const actionsDiv = document.getElementById('return-actions');
         itemsList.innerHTML = '';
-        actionsDiv.innerHTML = '<button onclick="hideModal(\'returnModal\')" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Close</button>';
+        actionsDiv.innerHTML = '<button onclick="hideModal(\'returnModal\')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button>';
         
         let hasItemsToReturn = false;
         loanItems.forEach(item => {
@@ -300,9 +310,9 @@
             if (!isReturned) hasItemsToReturn = true;
 
             let buttonHtml = isReturned 
-                ? `<span class="text-sm text-gray-500 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
+                ? `<span class="text-sm text-gray-500 dark:text-gray-400 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
                 : `<button onclick="processReturn('${item.TransactionID}', '${item.DeviceSerial}', '${item.DeviceType}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
-            itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b"><p>${deviceName}</p>${buttonHtml}</div>`;
+            itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b dark:border-gray-700"><p>${deviceName}</p>${buttonHtml}</div>`;
         });
 
         if (hasItemsToReturn) {
@@ -368,7 +378,32 @@
         });
     }
     
+    // --- Theme Toggle ---
+    const themeToggleBtn = document.getElementById('theme-toggle');
+
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            themeToggleBtn.querySelector('.fa-moon').classList.add('hidden');
+            themeToggleBtn.querySelector('.fa-sun').classList.remove('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            themeToggleBtn.querySelector('.fa-moon').classList.remove('hidden');
+            themeToggleBtn.querySelector('.fa-sun').classList.add('hidden');
+        }
+    }
+
+    themeToggleBtn.addEventListener('click', function() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+        applyTheme(isDark ? 'dark' : 'light');
+    });
+
     window.addEventListener('load', () => {
+        const savedTheme = localStorage.getItem('color-theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
+
         const promises = Object.keys(collectionConfigs).map(key => {
             return new Promise((resolve) => {
                 onSnapshot(collection(db, key), (snapshot) => {

@@ -6,18 +6,27 @@
     <title>Device Details</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4 transition-colors duration-300">
 
-    <div id="details-container" class="w-full max-w-lg bg-white p-8 rounded-xl shadow-lg">
-        <div id="loading" class="text-center text-gray-500">
+    <div id="details-container" class="w-full max-w-lg bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
+        <div id="loading" class="text-center text-gray-500 dark:text-gray-400">
             <p>Loading device details...</p>
         </div>
         <div id="content" class="hidden">
-            <h1 id="deviceName" class="text-2xl font-bold text-gray-800 mb-2"></h1>
-            <p id="deviceSub" class="text-md text-gray-500 mb-6"></p>
-            <div id="deviceFields" class="space-y-3 border-t pt-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 id="deviceName" class="text-2xl font-bold text-gray-800 dark:text-white mb-2"></h1>
+                    <p id="deviceSub" class="text-md text-gray-500 dark:text-gray-400 mb-6"></p>
+                </div>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none">
+                    <i class="fas fa-moon text-gray-500 dark:text-gray-400"></i>
+                    <i class="fas fa-sun text-gray-500 dark:text-gray-400 hidden"></i>
+                </button>
+            </div>
+            <div id="deviceFields" class="space-y-3 border-t dark:border-gray-700 pt-4">
                 <!-- Device fields will be inserted here -->
             </div>
         </div>
@@ -44,9 +53,24 @@
         const db = getFirestore(app);
 
         const collectionConfigs = {
-            Computers: { serialField: 'SerialNumber', nameField: 'ComputerName', subField: 'Manufacturer' },
-            Monitors: { serialField: 'MonitorSerial', nameField: 'Model', subField: 'Manufacturer' },
-            Audio: { serialField: 'SerialNumber', nameField: 'ItemName', subField: 'Model' }
+            Computers: { 
+                serialField: 'SerialNumber', 
+                nameField: 'ComputerName', 
+                subField: 'Model',
+                fieldsToShow: ['Status', 'Type', 'Location', 'UserName', 'SerialNumber', 'CPU', 'RAM_GB', 'DiskSize_GB', 'OS', 'IPAddress', 'WarrantyStartDate', 'WarrantyEndDate']
+            },
+            Monitors: { 
+                serialField: 'MonitorSerial', 
+                nameField: 'Model', 
+                subField: 'Manufacturer',
+                fieldsToShow: ['Status', 'MonitorSerial', 'ComputerName', 'WarrantyStartDate', 'WarrantyEndDate']
+            },
+            Audio: { 
+                serialField: 'SerialNumber', 
+                nameField: 'ItemName', 
+                subField: 'Model',
+                fieldsToShow: ['Status', 'SerialNumber', 'Manufacturer', 'WarrantyStartDate', 'WarrantyEndDate']
+            }
         };
 
         async function findDeviceBySerial(serial) {
@@ -61,8 +85,34 @@
             }
             return null;
         }
+        
+        // --- Theme Toggle ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                themeToggleBtn.querySelector('.fa-moon').classList.add('hidden');
+                themeToggleBtn.querySelector('.fa-sun').classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeToggleBtn.querySelector('.fa-moon').classList.remove('hidden');
+                themeToggleBtn.querySelector('.fa-sun').classList.add('hidden');
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+            applyTheme(isDark ? 'dark' : 'light');
+        });
+
 
         window.addEventListener('load', async () => {
+            const savedTheme = localStorage.getItem('color-theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
+
             const params = new URLSearchParams(window.location.search);
             const serialNumber = params.get('sn');
 
@@ -87,14 +137,16 @@
                 
                 const fieldsContainer = document.getElementById('deviceFields');
                 fieldsContainer.innerHTML = '';
-                for (const key in data) {
-                    fieldsContainer.innerHTML += `
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">${key}</span>
-                            <span class="font-semibold text-gray-800 text-right">${data[key]}</span>
-                        </div>
-                    `;
-                }
+                config.fieldsToShow.forEach(key => {
+                    if (data[key]) {
+                        fieldsContainer.innerHTML += `
+                            <div class="flex justify-between border-b dark:border-gray-700 py-2">
+                                <span class="text-gray-500 dark:text-gray-400">${key}</span>
+                                <span class="font-semibold text-gray-800 dark:text-gray-200 text-right">${data[key]}</span>
+                            </div>
+                        `;
+                    }
+                });
                 contentDiv.style.display = 'block';
             } else {
                 notFoundDiv.style.display = 'block';

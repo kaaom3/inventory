@@ -593,7 +593,6 @@
         document.getElementById('stat-total-monitors').textContent = monitors.length;
         document.getElementById('stat-total-audio').textContent = audio.length;
         document.getElementById('stat-total-accessories').textContent = accessories.length;
-        document.getElementById('stat-total-onloan').textContent = allDevices.filter(d => d.Status === 'On Loan').length;
         
         const statusCounts = allDevices.reduce((acc, device) => {
             if(device.Status) {

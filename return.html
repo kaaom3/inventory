@@ -7,19 +7,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Styles for Modal Transition */
+        .modal { transition: opacity 0.3s ease-in-out; }
+        .modal-content { transition: transform 0.3s ease-in-out; }
+        .modal.hidden { pointer-events: none; opacity: 0; }
+        .modal.hidden .modal-content { transform: scale(0.95); }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4">
 
-    <div class="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg">
-        <div id="loading" class="text-center text-gray-500">
+    <div class="w-full max-w-2xl bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
+        <div id="loading" class="text-center text-gray-500 dark:text-gray-400">
             <p>Loading loan details...</p>
         </div>
         
         <div id="content" class="hidden">
-            <h1 class="text-2xl font-bold text-gray-800 mb-4">คืนอุปกรณ์</h1>
-            <div id="returnDetails" class="text-sm mb-4 border-b pb-4"></div>
-            <h2 class="text-lg font-semibold text-gray-700 mb-3">รายการที่ยืม:</h2>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">คืนอุปกรณ์</h1>
+            <div id="returnDetails" class="text-sm mb-4 border-b dark:border-gray-700 pb-4"></div>
+            <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-3">รายการที่ยืม:</h2>
             <div id="return-items-list" class="space-y-3"></div>
             <div id="return-actions" class="mt-6 flex justify-end space-x-3">
                 <!-- Action buttons will be inserted here -->
@@ -31,6 +38,18 @@
              <p>The loan with the specified ID could not be found.</p>
         </div>
     </div>
+
+    <!-- Custom Alert/Confirm Modal -->
+    <div id="customModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="modal-content m-4 w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+            <h3 id="modalTitle" class="text-lg font-bold text-gray-900 dark:text-white"></h3>
+            <p id="modalMessage" class="mt-2 text-sm text-gray-600 dark:text-gray-300"></p>
+            <div id="modalButtons" class="mt-6 flex justify-end space-x-3">
+                <!-- Buttons will be injected here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -53,8 +72,50 @@
         const collectionConfigs = {
             Computers: { serialField: 'SerialNumber', nameField: 'ComputerName' },
             Monitors: { serialField: 'MonitorSerial', nameField: 'Model' },
-            Audio: { serialField: 'SerialNumber', nameField: 'ItemName' }
+            Audio: { serialField: 'SerialNumber', nameField: 'ItemName' },
+            Accessory: { serialField: 'SerialNumber', nameField: 'Model' }
         };
+
+        // --- Custom Modal Functions ---
+        const customModal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalButtons = document.getElementById('modalButtons');
+
+        function hideCustomModal() {
+            customModal.classList.add('hidden');
+        }
+
+        function showCustomModal(title, message, buttons = []) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalButtons.innerHTML = ''; // Clear previous buttons
+
+            if (buttons.length === 0) {
+                // Default "OK" button if none are provided
+                buttons.push({
+                    text: 'OK',
+                    classes: 'bg-indigo-600 text-white hover:bg-indigo-700',
+                    onClick: hideCustomModal
+                });
+            }
+
+            buttons.forEach(btnInfo => {
+                const button = document.createElement('button');
+                button.textContent = btnInfo.text;
+                button.className = `rounded-lg px-4 py-2 text-sm font-semibold ${btnInfo.classes}`;
+                button.onclick = () => {
+                    hideCustomModal(); // Always hide modal on click
+                    if (btnInfo.onClick) {
+                        btnInfo.onClick();
+                    }
+                };
+                modalButtons.appendChild(button);
+            });
+
+            customModal.classList.remove('hidden');
+        }
+
 
         async function findDeviceBySerial(serial, collectionName) {
             const config = collectionConfigs[collectionName];
@@ -68,55 +129,78 @@
             return null;
         }
         
-        window.processReturn = async (transactionId, deviceSerial, deviceType) => {
-            if (!confirm('Confirm return of this item?')) return;
-            try {
-                const batch = writeBatch(db);
-                const transactionRef = doc(db, "LoanHistory", transactionId);
-                batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
-
-                const deviceDoc = await findDeviceBySerial(deviceSerial, deviceType);
-                if (deviceDoc) {
-                    batch.update(deviceDoc.ref, { Status: 'Active' });
-                }
-                
-                await batch.commit();
-                alert('Item returned successfully!');
-                window.location.reload(); // Reload the page to show updated status
-            } catch (error) {
-                console.error("Error returning item: ", error);
-                alert('Failed to return item.');
-            }
-        }
-
-        window.processReturnAll = async () => {
-            const itemsToReturn = currentLoanItems.filter(item => item.Status === 'On Loan');
-            if (itemsToReturn.length === 0) {
-                alert("All items have already been returned.");
-                return;
-            }
-            if (!confirm(`Are you sure you want to return all ${itemsToReturn.length} remaining items?`)) return;
-
-            try {
-                const batch = writeBatch(db);
-                for (const item of itemsToReturn) {
-                    // Update LoanHistory status
-                    const transactionRef = doc(db, "LoanHistory", item.id);
+        window.processReturn = (transactionId, deviceSerial, deviceType) => {
+            const confirmReturnAction = async () => {
+                try {
+                    const batch = writeBatch(db);
+                    const transactionRef = doc(db, "LoanHistory", transactionId);
                     batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
 
-                    // Update device status
-                    const deviceDoc = await findDeviceBySerial(item.DeviceSerial, item.DeviceType);
+                    const deviceDoc = await findDeviceBySerial(deviceSerial, deviceType);
                     if (deviceDoc) {
                         batch.update(deviceDoc.ref, { Status: 'Active' });
                     }
+                    
+                    await batch.commit();
+                    showCustomModal('Success', 'Item returned successfully!', [{
+                        text: 'OK',
+                        classes: 'bg-green-600 text-white hover:bg-green-700',
+                        onClick: () => window.location.reload()
+                    }]);
+                } catch (error) {
+                    console.error("Error returning item: ", error);
+                    showCustomModal('Error', 'Failed to return item. Please check the console for details.');
                 }
-                await batch.commit();
-                alert('All items returned successfully!');
-                window.location.reload();
-            } catch (error) {
-                console.error("Error returning all items: ", error);
-                alert('Failed to return all items.');
+            };
+
+            showCustomModal(
+                'Confirm Return',
+                'Are you sure you want to return this item?',
+                [
+                    { text: 'Cancel', classes: 'bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500' },
+                    { text: 'Confirm', classes: 'bg-red-600 text-white hover:bg-red-700', onClick: confirmReturnAction }
+                ]
+            );
+        }
+
+        window.processReturnAll = () => {
+            const itemsToReturn = currentLoanItems.filter(item => item.Status === 'On Loan');
+            if (itemsToReturn.length === 0) {
+                showCustomModal('Information', 'All items have already been returned.');
+                return;
             }
+
+            const confirmReturnAllAction = async () => {
+                try {
+                    const batch = writeBatch(db);
+                    for (const item of itemsToReturn) {
+                        const transactionRef = doc(db, "LoanHistory", item.id);
+                        batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
+                        const deviceDoc = await findDeviceBySerial(item.DeviceSerial, item.DeviceType);
+                        if (deviceDoc) {
+                            batch.update(deviceDoc.ref, { Status: 'Active' });
+                        }
+                    }
+                    await batch.commit();
+                    showCustomModal('Success', 'All items returned successfully!', [{
+                        text: 'OK',
+                        classes: 'bg-green-600 text-white hover:bg-green-700',
+                        onClick: () => window.location.reload()
+                    }]);
+                } catch (error) {
+                    console.error("Error returning all items: ", error);
+                    showCustomModal('Error', 'Failed to return all items. Please check the console for details.');
+                }
+            };
+            
+            showCustomModal(
+                'Confirm Return All',
+                `Are you sure you want to return all ${itemsToReturn.length} remaining items?`,
+                [
+                    { text: 'Cancel', classes: 'bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500' },
+                    { text: 'Confirm', classes: 'bg-red-600 text-white hover:bg-red-700', onClick: confirmReturnAllAction }
+                ]
+            );
         }
 
         window.addEventListener('load', async () => {
@@ -161,7 +245,9 @@
 
                 for (const item of currentLoanItems) {
                     const deviceDoc = await findDeviceBySerial(item.DeviceSerial, item.DeviceType);
-                    const deviceName = deviceDoc?.data()[collectionConfigs[item.DeviceType].nameField] || item.DeviceSerial;
+                    const config = collectionConfigs[item.DeviceType];
+                    const deviceName = (config && deviceDoc?.data()) ? deviceDoc.data()[config.nameField] : item.DeviceSerial;
+                    
                     const isReturned = item.Status === 'Returned';
                     
                     if (!isReturned) {
@@ -169,10 +255,10 @@
                     }
 
                     let buttonHtml = isReturned 
-                        ? `<span class="text-sm text-gray-500 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
+                        ? `<span class="text-sm text-gray-500 dark:text-gray-400 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
                         : `<button onclick="processReturn('${item.id}', '${item.DeviceSerial}', '${item.DeviceType}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
                     
-                    itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b"><p>${deviceName}</p>${buttonHtml}</div>`;
+                    itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b dark:border-gray-700"><p class="text-gray-800 dark:text-gray-200">${deviceName}</p>${buttonHtml}</div>`;
                 }
 
                 const actionsDiv = document.getElementById('return-actions');

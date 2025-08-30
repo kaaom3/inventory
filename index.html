@@ -25,6 +25,8 @@
     #sidebar { transition: transform 0.3s ease-in-out; }
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
+    /* Ensure table layout is fixed to respect column widths */
+    .table-fixed { table-layout: fixed; width: 100%; }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -306,25 +308,25 @@
       <div id="computers-page" class="page-content">
         <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Computer Inventory</h2><button onclick="openModal('add', 'Computers')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
         <div class="mb-4"><input type="text" id="computersSearchInput" onkeyup="handleSearch('Computers', this.value)" placeholder="Search computers..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="ComputersTable" class="min-w-full"></table></div></div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="ComputersTable" class="min-w-full table-fixed"></table></div></div>
         <div id="ComputersPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
       </div>
       <div id="monitors-page" class="page-content">
         <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Monitor Inventory</h2><button onclick="openModal('add', 'Monitors')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
         <div class="mb-4"><input type="text" id="monitorsSearchInput" onkeyup="handleSearch('Monitors', this.value)" placeholder="Search monitors..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="MonitorsTable" class="min-w-full"></table></div></div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="MonitorsTable" class="min-w-full table-fixed"></table></div></div>
         <div id="MonitorsPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
       </div>
       <div id="audio-page" class="page-content">
         <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Audio Inventory</h2><button onclick="openModal('add', 'Audio')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
         <div class="mb-4"><input type="text" id="audioSearchInput" onkeyup="handleSearch('Audio', this.value)" placeholder="Search audio..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AudioTable" class="min-w-full"></table></div></div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AudioTable" class="min-w-full table-fixed"></table></div></div>
         <div id="AudioPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
       </div>
       <div id="accessory-page" class="page-content">
         <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Accessory Inventory</h2><button onclick="openModal('add', 'Accessory')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
         <div class="mb-4"><input type="text" id="accessorySearchInput" onkeyup="handleSearch('Accessory', this.value)" placeholder="Search accessories..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AccessoryTable" class="min-w-full"></table></div></div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AccessoryTable" class="min-w-full table-fixed"></table></div></div>
         <div id="AccessoryPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
       </div>
       
@@ -381,7 +383,8 @@
 
     const collectionConfigs = {
         Computers: { 
-            headers: ['ComputerName', 'Manufacturer', 'Model', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyStartDate', 'WarrantyEndDate'], 
+            headers: ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location'], 
+            formFields: ['ComputerName', 'Manufacturer', 'Model', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyStartDate', 'WarrantyEndDate'], 
             nameField: 'ComputerName', 
             serialField: 'SerialNumber', 
             icon: 'fa-laptop',
@@ -392,7 +395,8 @@
             }
         },
         Monitors: { 
-            headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
+            headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status'], 
+            formFields: ['ComputerName', 'Model', 'MonitorSerial', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
             nameField: 'Model', 
             serialField: 'MonitorSerial', 
             icon: 'fa-desktop',
@@ -401,7 +405,8 @@
             }
         },
         Audio: { 
-            headers: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
+            headers: ['ItemName', 'Model', 'SerialNumber', 'Status'], 
+            formFields: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
             nameField: 'ItemName', 
             serialField: 'SerialNumber', 
             icon: 'fa-volume-up',
@@ -410,7 +415,8 @@
             }
         },
         Accessory: {
-            headers: ['AccessoryType', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'AssignedComputer', 'UserName', 'WarrantyEndDate'],
+            headers: ['AccessoryType', 'Model', 'SerialNumber', 'Status', 'UserName'],
+            formFields: ['AccessoryType', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'AssignedComputer', 'UserName', 'WarrantyEndDate'],
             nameField: 'Model',
             serialField: 'SerialNumber',
             icon: 'fa-keyboard',
@@ -515,7 +521,9 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors";
                 headers.forEach(header => {
-                    let cellValue = item[header] || '';
+                    const rawValue = item[header] || '';
+                    let cellValue = rawValue;
+                    
                     if (header === 'WarrantyEndDate' && item.WarrantyEndDate) {
                         const endDate = new Date(item.WarrantyEndDate);
                         const today = new Date();
@@ -537,12 +545,18 @@
                                 colorClass = 'text-green-500';
                                 daysText = `(${diffDays} days left)`;
                             }
-                            cellValue = `<span>${cellValue} <span class="${colorClass} text-xs">${daysText}</span></span>`;
+                            cellValue = `<span>${rawValue} <span class="${colorClass} text-xs">${daysText}</span></span>`;
                         }
                     }
-                    tr.innerHTML += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${cellValue}</td>`;
+
+                    let extraClasses = 'whitespace-nowrap';
+                    if (header === 'ComputerName' || header === 'ItemName' || header === 'Model' || header === 'UserName' || header === 'Location') {
+                        extraClasses = 'truncate'; 
+                    }
+                    
+                    tr.innerHTML += `<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-200 ${extraClasses}" title="${rawValue}">${cellValue}</td>`;
                 });
-                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"><i class="fas fa-qrcode"></i></button></td>`;
+                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4 whitespace-nowrap"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"><i class="fas fa-qrcode"></i></button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -750,11 +764,11 @@
         const form = document.getElementById('editForm');
         form.innerHTML = '';
         const config = collectionConfigs[collection];
-        const { headers, dropdowns } = config;
+        const { formFields, dropdowns } = config;
         const itemData = (mode === 'edit') ? allData[collection].find(i => i.id === id) : {};
         document.getElementById('editModalTitle').textContent = `${mode === 'edit' ? 'Edit' : 'Add'} ${collection.slice(0, -1)}`;
         
-        headers.forEach(header => {
+        formFields.forEach(header => {
             const value = itemData[header] || '';
             let fieldHtml = `<div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300">${header}</label>`;
             

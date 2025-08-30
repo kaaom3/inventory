@@ -76,12 +76,12 @@
       }
       /* Specific font sizes for printing the label */
       #printLabelDeviceName {
-        font-size: 11px !important;
+        font-size: 16px !important;
         font-weight: bold;
         line-height: 1.2 !important;
       }
       #printLabelSerial {
-        font-size: 9px !important;
+        font-size: 12px !important;
         word-break: break-all;
       }
     }
@@ -435,15 +435,16 @@
     </div>
   </div>
   <div id="printLabelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
-    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md">
         <div id="printable-area">
-            <div class="border-2 border-black dark:border-gray-400 p-2 flex flex-col" style="width: 227px; height: 113px;">
-                <div class="text-center font-bold text-xs border-b-2 border-black dark:border-gray-400 pb-1">IT Department Asset</div>
-                <div class="flex items-center justify-between mt-1 flex-grow">
+            <!-- 7.62cm = 288px, 5.08cm = 192px -->
+            <div class="border-2 border-black dark:border-gray-400 p-2 flex flex-col" style="width: 288px; height: 192px;">
+                <div class="text-center font-bold text-lg border-b-2 border-black dark:border-gray-400 pb-1">IT Department Asset</div>
+                <div class="flex items-center justify-between mt-2 flex-grow">
                     <canvas id="printLabelQrCanvas"></canvas>
-                    <div class="text-right flex-grow pl-2 flex flex-col justify-center">
-                        <p id="printLabelDeviceName" class="font-bold text-sm leading-tight break-words"></p>
-                        <p id="printLabelSerial" class="text-xs break-all"></p>
+                    <div class="text-right flex-grow pl-3 flex flex-col justify-center">
+                        <p id="printLabelDeviceName" class="font-bold text-xl leading-tight break-words"></p>
+                        <p id="printLabelSerial" class="text-md break-all"></p>
                     </div>
                 </div>
             </div>
@@ -988,7 +989,7 @@
 
         const canvas = document.getElementById('printLabelQrCanvas');
         const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-        QRCode.toCanvas(canvas, url, { width: 72, margin: 1 });
+        QRCode.toCanvas(canvas, url, { width: 128, margin: 1 });
         
         document.getElementById('printLabelModal').classList.remove('opacity-0', 'pointer-events-none');
     };

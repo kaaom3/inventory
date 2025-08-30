@@ -401,13 +401,13 @@
   <div id="printLabelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
     <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm">
         <div id="printable-area">
-            <div class="border-2 border-black dark:border-gray-400 p-4" style="width: 300px; height: 150px;">
-                <div class="text-center font-bold text-sm border-b-2 border-black dark:border-gray-400 pb-1">IT Department Asset</div>
-                <div class="flex items-center justify-between mt-2">
+            <div class="border-2 border-black dark:border-gray-400 p-2 flex flex-col" style="width: 227px; height: 113px;">
+                <div class="text-center font-bold text-xs border-b-2 border-black dark:border-gray-400 pb-1">IT Department Asset</div>
+                <div class="flex items-center justify-between mt-1 flex-grow">
                     <canvas id="printLabelQrCanvas"></canvas>
-                    <div class="text-right flex-grow pl-2">
-                        <p id="printLabelDeviceName" class="font-bold text-md leading-tight"></p>
-                        <p id="printLabelSerial" class="text-xs"></p>
+                    <div class="text-right flex-grow pl-2 flex flex-col justify-center">
+                        <p id="printLabelDeviceName" class="font-bold text-sm leading-tight break-words"></p>
+                        <p id="printLabelSerial" class="text-xs break-all"></p>
                     </div>
                 </div>
             </div>
@@ -952,7 +952,7 @@
 
         const canvas = document.getElementById('printLabelQrCanvas');
         const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-        QRCode.toCanvas(canvas, url, { width: 80, margin: 1 });
+        QRCode.toCanvas(canvas, url, { width: 72, margin: 1 });
         
         document.getElementById('printLabelModal').classList.remove('opacity-0', 'pointer-events-none');
     };

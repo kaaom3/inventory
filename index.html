@@ -348,7 +348,16 @@
   </div>
 
   <!-- Modals -->
-  <div id="editModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md"><h3 id="editModalTitle" class="text-xl font-semibold mb-6"></h3><form id="editForm" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></form><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button><button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button></div></div></div>
+  <div id="editModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-2xl">
+        <h3 id="editModalTitle" class="text-xl font-semibold mb-6"></h3>
+        <form id="editForm" class="space-y-6 max-h-[60vh] overflow-y-auto pr-4"></form>
+        <div class="mt-6 flex justify-end space-x-4">
+            <button onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
+            <button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
+        </div>
+    </div>
+  </div>
   <div id="qrModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 text-center"><h3 id="qrModalTitle" class="text-xl font-semibold mb-4"></h3><canvas id="qrCanvas" class="mx-auto"></canvas><button onclick="hideModal('qrModal')" class="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg">Close</button></div></div>
   <div id="exportModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
     <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-lg">
@@ -396,7 +405,7 @@
         },
         Monitors: { 
             headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status'], 
-            formFields: ['ComputerName', 'Model', 'MonitorSerial', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
+            formFields: ['ComputerName', 'Manufacturer', 'Model', 'MonitorSerial', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
             nameField: 'Model', 
             serialField: 'MonitorSerial', 
             icon: 'fa-desktop',
@@ -764,50 +773,72 @@
         const form = document.getElementById('editForm');
         form.innerHTML = '';
         const config = collectionConfigs[collection];
-        const { formFields, dropdowns } = config;
+        const { dropdowns } = config;
         const itemData = (mode === 'edit') ? allData[collection].find(i => i.id === id) : {};
         document.getElementById('editModalTitle').textContent = `${mode === 'edit' ? 'Edit' : 'Add'} ${collection.slice(0, -1)}`;
-        
-        formFields.forEach(header => {
-            const value = itemData[header] || '';
-            let fieldHtml = `<div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300">${header}</label>`;
-            
-            if (header === 'Location' && allData.Location.length > 0) {
-                fieldHtml += `
-                    <div class="relative">
-                        <input type="text" id="locationSearchInput" name="Location" value="${value}"
-                               onkeyup="filterLocations(this.value)"
-                               onfocus="document.getElementById('locationDropdown').classList.remove('hidden')"
-                               placeholder="Search or select location..."
-                               autocomplete="off"
-                               class="mt-1 block w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-                        <div id="locationDropdown" class="hidden absolute z-10 w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">`;
-                allData.Location.forEach(loc => {
-                    fieldHtml += `<a href="#" data-value="${loc.LocationName}" class="location-item block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500">${loc.LocationName}</a>`;
+
+        const layouts = {
+            Computers: [
+                { title: 'Core Details', fields: ['ComputerName', 'SerialNumber', 'Status', 'Type'] },
+                { title: 'Assignment', fields: ['UserName', 'Location'] },
+                { title: 'Purchase & Specs', fields: ['Manufacturer', 'Model', 'WarrantyStartDate', 'WarrantyEndDate'] }
+            ],
+            Monitors: [
+                { title: 'Details & Status', fields: ['Model', 'MonitorSerial', 'Status', 'Manufacturer'] },
+                { title: 'Assignment & Warranty', fields: ['ComputerName', 'WarrantyStartDate', 'WarrantyEndDate'] }
+            ],
+            Audio: [
+                { title: 'Details & Status', fields: ['ItemName', 'Model', 'SerialNumber', 'Status'] },
+                { title: 'Purchase Info', fields: ['Manufacturer', 'WarrantyStartDate', 'WarrantyEndDate'] }
+            ],
+            Accessory: [
+                { title: 'Details & Status', fields: ['AccessoryType', 'Model', 'SerialNumber', 'Status'] },
+                { title: 'Assignment & Warranty', fields: ['UserName', 'AssignedComputer', 'Manufacturer', 'WarrantyEndDate'] }
+            ]
+        };
+
+        const collectionLayout = layouts[collection];
+        let finalFormHtml = '';
+
+        if (collectionLayout) {
+            collectionLayout.forEach(section => {
+                finalFormHtml += `
+                    <div>
+                        <h4 class="text-md font-semibold text-gray-500 dark:text-gray-400 col-span-full border-b dark:border-gray-600 pb-1 mb-3">${section.title}</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mt-2">
+                `;
+                section.fields.forEach(fieldName => {
+                    const value = itemData[fieldName] || '';
+                    let fieldHtml = `<div class="col-span-1"><label class="block text-sm font-medium text-gray-700 dark:text-gray-300">${fieldName}</label>`;
+
+                    if (fieldName === 'Location' && allData.Location.length > 0) {
+                        fieldHtml += `<div class="relative">
+                            <input type="text" id="locationSearchInput" name="Location" value="${value}" onkeyup="filterLocations(this.value)" onfocus="document.getElementById('locationDropdown').classList.remove('hidden')" placeholder="Search or select location..." autocomplete="off" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                            <div id="locationDropdown" class="hidden absolute z-10 w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
+                                ${allData.Location.map(loc => `<a href="#" data-value="${loc.LocationName}" class="location-item block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500">${loc.LocationName}</a>`).join('')}
+                            </div>
+                        </div>`;
+                    } else if (fieldName.toLowerCase().includes('date')) {
+                        fieldHtml += `<input type="date" name="${fieldName}" value="${value}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">`;
+                    } else if (dropdowns && dropdowns[fieldName]) {
+                        fieldHtml += `<select name="${fieldName}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
+                            ${dropdowns[fieldName].map(opt => `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                        </select>`;
+                    } else {
+                        fieldHtml += `<input type="text" name="${fieldName}" value="${value}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">`;
+                    }
+                    fieldHtml += `</div>`;
+                    finalFormHtml += fieldHtml;
                 });
-                fieldHtml += `</div></div>`;
-            } else if (header.toLowerCase().includes('date')) {
-                fieldHtml += `<input type="date" name="${header}" value="${value}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">`;
-            } else if (dropdowns && dropdowns[header]) {
-                const options = dropdowns[header];
-                fieldHtml += `<select name="${header}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">`;
-                options.forEach(opt => {
-                    const isSelected = value === opt ? 'selected' : '';
-                    fieldHtml += `<option value="${opt}" ${isSelected}>${opt}</option>`;
-                });
-                fieldHtml += `</select>`;
-            } else {
-                fieldHtml += `<input type="text" name="${header}" value="${value}" class="mt-1 block w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">`;
-            }
-            fieldHtml += `</div>`;
-            form.innerHTML += fieldHtml;
-        });
+                finalFormHtml += `</div></div>`;
+            });
+        }
+
+        form.innerHTML = finalFormHtml;
         
         const locationDropdown = form.querySelector('#locationDropdown');
         if (locationDropdown) {
-            form.querySelector('#locationSearchInput').addEventListener('blur', () => {
-                setTimeout(() => locationDropdown.classList.add('hidden'), 200);
-            });
+            form.querySelector('#locationSearchInput').addEventListener('blur', () => { setTimeout(() => locationDropdown.classList.add('hidden'), 200); });
             locationDropdown.addEventListener('click', (e) => {
                 if (e.target.classList.contains('location-item')) {
                     e.preventDefault();

@@ -466,6 +466,8 @@
         
         if (pageName === 'Software') {
             buildSoftwareCards(allData.Software);
+        } else if (pageName === 'LoanHistory') {
+            buildLoanHistoryCards(allData.LoanHistory);
         } else if (collectionConfigs[pageName]) {
             const state = paginationState[pageName];
             state.categoryFilter = filterValue; // Set category filter from submenu

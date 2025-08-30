@@ -264,6 +264,24 @@
             </div>
         </div>
 
+        <!-- Upcoming Return Deadlines -->
+        <div class="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+            <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Upcoming Return Deadlines (Next 2 Days)</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Borrower</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Device</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Return Date</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Time Left</th>
+                        </tr>
+                    </thead>
+                    <tbody id="due-soon-table" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Warranty Watchlist -->
         <div class="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
             <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Warranty Watchlist (Ending in 30 days)</h3>
@@ -842,13 +860,27 @@
         const getCountByStatus = (data, status) => data.filter(d => d.Status === status).length;
         
         const today = new Date();
-        const thirtyDaysFromNow = new Date();
+        today.setHours(0,0,0,0); // Normalize to start of today
+        
+        const thirtyDaysFromNow = new Date(today);
         thirtyDaysFromNow.setDate(today.getDate() + 30);
         
         const warrantyEndingSoon = allDevices.filter(d => {
             if (!d.WarrantyEndDate) return false;
             const endDate = new Date(d.WarrantyEndDate);
             return endDate >= today && endDate <= thirtyDaysFromNow;
+        });
+
+        const twoDaysFromNow = new Date(today);
+        twoDaysFromNow.setDate(today.getDate() + 2);
+        twoDaysFromNow.setHours(23, 59, 59, 999); // Normalize to end of the day
+
+        const dueSoonItems = loanHistory.filter(loan => {
+            if (loan.Status !== 'On Loan' || !loan.DueDate?.toDate) {
+                return false;
+            }
+            const dueDate = loan.DueDate.toDate();
+            return dueDate >= today && dueDate <= twoDaysFromNow;
         });
 
         document.getElementById('stat-total-devices').textContent = allDevices.length;
@@ -939,6 +971,7 @@
 
         renderRecentActivities(loanHistory, allDevices);
         renderWarrantyWatchlist(warrantyEndingSoon);
+        renderDueSoonTable(dueSoonItems, allDevices);
     }
     
     function renderStatusChart(statusData) {
@@ -1043,6 +1076,49 @@
         });
     }
 
+    function renderDueSoonTable(dueItems, allDevices) {
+        const tbody = document.getElementById('due-soon-table');
+        tbody.innerHTML = '';
+        if (dueItems.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 dark:text-gray-400 py-4">No items are due for return soon.</td></tr>`;
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        dueItems.sort((a,b) => a.DueDate.toDate() - b.DueDate.toDate());
+
+        dueItems.forEach(item => {
+            const config = collectionConfigs[item.DeviceType];
+            const device = allDevices.find(d => config && d[config.serialField] === item.DeviceSerial);
+            const deviceName = device && config ? device[config.nameField] : item.DeviceSerial;
+            
+            const dueDate = item.DueDate.toDate();
+            const diffTime = dueDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let daysLeftText = `${diffDays} days`;
+            let textColor = 'text-yellow-500';
+
+            if (diffDays <= 0) {
+                daysLeftText = 'Due Today';
+                textColor = 'text-red-500 animate-pulse';
+            } else if (diffDays === 1) {
+                daysLeftText = '1 day';
+            }
+            
+            tbody.innerHTML += `
+                <tr class="text-sm">
+                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${item.BorrowerName}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${deviceName}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${dueDate.toLocaleDateString('th-TH')}</td>
+                    <td class="px-4 py-2 font-semibold ${textColor}">${daysLeftText}</td>
+                </tr>
+            `;
+        });
+    }
+
     window.resetAllStatusToActive = async function() {
         const confirmationText = "RESET";
         const userInput = prompt(`This is a destructive action. To confirm, please type "${confirmationText}" in the box below.`);
@@ -1132,3 +1208,4 @@
   </script>
 </body>
 </html>
+

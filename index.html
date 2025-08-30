@@ -25,8 +25,30 @@
     #sidebar { transition: transform 0.3s ease-in-out; }
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
-    /* Ensure table layout is fixed to respect column widths */
     .table-fixed { table-layout: fixed; width: 100%; }
+
+    /* Print Styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printable-area, #printable-area * {
+        visibility: visible;
+      }
+      #printable-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -376,6 +398,28 @@
         </div>
     </div>
   </div>
+  <div id="printLabelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm">
+        <div id="printable-area">
+            <div class="border-2 border-black dark:border-gray-400 p-4" style="width: 300px; height: 150px;">
+                <div class="text-center font-bold text-sm border-b-2 border-black dark:border-gray-400 pb-1">IT Department Asset</div>
+                <div class="flex items-center justify-between mt-2">
+                    <canvas id="printLabelQrCanvas"></canvas>
+                    <div class="text-right flex-grow pl-2">
+                        <p id="printLabelDeviceName" class="font-bold text-md leading-tight"></p>
+                        <p id="printLabelSerial" class="text-xs"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-4 no-print">
+            <button onclick="hideModal('printLabelModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button>
+            <button onclick="printLabel()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <i class="fas fa-print mr-2"></i>Print Label
+            </button>
+        </div>
+    </div>
+</div>
   
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -567,7 +611,7 @@
                     
                     tr.innerHTML += `<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-200 ${extraClasses}" title="${rawValue}">${cellValue}</td>`;
                 });
-                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4 whitespace-nowrap"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"><i class="fas fa-qrcode"></i></button></td>`;
+                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4 whitespace-nowrap"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" title="Edit"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Delete"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" title="Show QR"><i class="fas fa-qrcode"></i></button><button onclick="openPrintModal('${collectionName}', '${item.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" title="Print Label"><i class="fas fa-print"></i></button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -890,6 +934,31 @@
         }
         QRCode.toCanvas(document.getElementById('qrCanvas'), url, { width: 256 });
         document.getElementById('qrModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
+
+    window.openPrintModal = (collectionName, id) => {
+        const config = collectionConfigs[collectionName];
+        const item = allData[collectionName].find(i => i.id === id);
+        if (!item) {
+            alert('Device not found!');
+            return;
+        }
+
+        const deviceName = item[config.nameField] || 'N/A';
+        const serialNumber = item[config.serialField] || 'N/A';
+        
+        document.getElementById('printLabelDeviceName').textContent = deviceName;
+        document.getElementById('printLabelSerial').textContent = `SN: ${serialNumber}`;
+
+        const canvas = document.getElementById('printLabelQrCanvas');
+        const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
+        QRCode.toCanvas(canvas, url, { width: 80, margin: 1 });
+        
+        document.getElementById('printLabelModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
+
+    window.printLabel = () => {
+        window.print();
     };
 
     function listenToCollection(collectionName, config) {

@@ -111,8 +111,8 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 md:mb-0">Dashboard</h2>
             <div class="flex items-center space-x-2 w-full md:w-auto">
-                <button onclick="resetAllStatusToActive()" class="w-full md:w-auto bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
-                    <i class="fas fa-sync-alt mr-2"></i>Reset All Status
+                <button onclick="openExportModal()" class="w-full md:w-auto bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-file-excel mr-2"></i>Export Report
                 </button>
                 <button id="theme-toggle-main" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none md:hidden">
                     <i class="fas fa-moon text-gray-500 dark:text-gray-400"></i>
@@ -348,6 +348,23 @@
   <!-- Modals -->
   <div id="editModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md"><h3 id="editModalTitle" class="text-xl font-semibold mb-6"></h3><form id="editForm" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></form><div class="mt-6 flex justify-end space-x-4"><button onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button><button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button></div></div></div>
   <div id="qrModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 text-center"><h3 id="qrModalTitle" class="text-xl font-semibold mb-4"></h3><canvas id="qrCanvas" class="mx-auto"></canvas><button onclick="hideModal('qrModal')" class="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg">Close</button></div></div>
+  <div id="exportModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-lg">
+        <h3 class="text-xl font-semibold mb-6">Export Data to CSV</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select categories to export:</label>
+                <div id="export-categories-container" class="grid grid-cols-2 gap-4">
+                    <!-- Checkboxes will be inserted here by JS -->
+                </div>
+            </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-4">
+            <button onclick="hideModal('exportModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
+            <button onclick="exportToCsv()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Download CSV</button>
+        </div>
+    </div>
+  </div>
   
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -832,18 +849,24 @@
         onSnapshot(collection(db, collectionName), (snapshot) => {
             allData[collectionName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             if (config.isInventory) {
-                buildTable(collectionName);
+                if(document.getElementById(`${collectionName.toLowerCase()}-page`).style.display === 'block') {
+                    buildTable(collectionName);
+                }
             } else if (collectionName === 'Software') {
-                buildSoftwareCards(allData[collectionName]);
+                if(document.getElementById('software-page').style.display === 'block') {
+                   buildSoftwareCards(allData[collectionName]);
+                }
             } else if (collectionName === 'LoanHistory') {
-                buildLoanHistoryCards(allData[collectionName]);
+                 if(document.getElementById('loanhistory-page').style.display === 'block') {
+                    buildLoanHistoryCards(allData[collectionName]);
+                }
             }
             updateDashboard();
         }, (error) => {
             console.error(`Error listening to ${collectionName}: `, error);
             let msg = `Error fetching data for ${collectionName}.`;
             if (error.code === 'permission-denied') msg = `Permission Denied. Check Firestore Rules.`;
-            if (config.isInventory) buildTable(collectionName, msg);
+            if (config.isInventory) buildTable(collectionName, [], msg);
             else if (collectionName === 'LoanHistory') buildLoanHistoryCards([], msg);
             else if (collectionName === 'Software') buildSoftwareCards([], msg);
         });
@@ -1118,30 +1141,129 @@
             `;
         });
     }
+    
+    // --- Export to CSV ---
+    window.openExportModal = () => {
+        const container = document.getElementById('export-categories-container');
+        container.innerHTML = '';
+        // Also add LoanHistory to the export options
+        const exportableCollections = {...collectionConfigs, LoanHistory: {}};
+        Object.keys(exportableCollections).forEach(collectionName => {
+            container.innerHTML += `
+                <label class="flex items-center space-x-3">
+                    <input type="checkbox" name="export-category" value="${collectionName}" class="rounded text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-gray-700 dark:text-gray-300">${collectionName}</span>
+                </label>
+            `;
+        });
+        document.getElementById('exportModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
 
-    window.resetAllStatusToActive = async function() {
-        const confirmationText = "RESET";
-        const userInput = prompt(`This is a destructive action. To confirm, please type "${confirmationText}" in the box below.`);
-
-        if (userInput !== confirmationText) {
-            alert("Confirmation failed. Action cancelled.");
+    window.exportToCsv = () => {
+        const checkboxes = document.querySelectorAll('input[name="export-category"]:checked');
+        if (checkboxes.length === 0) {
+            alert('Please select at least one category to export.');
             return;
         }
-        
-        alert('Updating statuses... This may take a moment.');
-        try {
-            const batch = writeBatch(db);
-            for (const collectionName in collectionConfigs) {
-                allData[collectionName].forEach(item => {
-                    const docRef = doc(db, collectionName, item.id);
-                    batch.update(docRef, { Status: 'Active' });
+
+        const selectedCategories = Array.from(checkboxes).map(cb => cb.value);
+
+        // --- Create Summary ---
+        let summaryCsvContent = 'Category Status Summary\n';
+        const allStatuses = ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'];
+        summaryCsvContent += 'Category / Type,Total,' + allStatuses.join(',') + '\n';
+
+        selectedCategories.forEach(cat => {
+            if (cat === 'LoanHistory') return; 
+
+            const categoryData = allData[cat] || [];
+            const config = collectionConfigs[cat];
+            
+            // Check if the category has subtypes (like Computers -> Type, Accessory -> AccessoryType)
+            if (config && config.categoryFilterField && config.dropdowns && config.dropdowns[config.categoryFilterField]) {
+                const types = config.dropdowns[config.categoryFilterField];
+                types.forEach(type => {
+                    const typeData = categoryData.filter(item => item[config.categoryFilterField] === type);
+                    if (typeData.length > 0) { // Only show types that have items
+                        const counts = { Total: typeData.length };
+                        allStatuses.forEach(status => {
+                            counts[status] = typeData.filter(item => item.Status === status).length;
+                        });
+                        const rowName = `${cat} - ${type}`;
+                        const row = [rowName, counts.Total, ...allStatuses.map(status => counts[status] || 0)].join(',');
+                        summaryCsvContent += row + '\n';
+                    }
                 });
+            } else {
+                // For categories without subtypes (Monitors, Audio)
+                const counts = { Total: categoryData.length };
+                allStatuses.forEach(status => {
+                    counts[status] = categoryData.filter(item => item.Status === status).length;
+                });
+                const row = [cat, counts.Total, ...allStatuses.map(status => counts[status] || 0)].join(',');
+                summaryCsvContent += row + '\n';
             }
-            await batch.commit();
-            alert('All device statuses have been successfully reset to "Active".');
-        } catch (error) { console.error("Error:", error); alert("An error occurred."); }
-    }
-    
+        });
+
+        summaryCsvContent += '\n\nRaw Data\n'; // Add spacing before raw data
+
+        // --- Aggregate Raw Data ---
+        let dataToExport = [];
+        selectedCategories.forEach(cat => {
+            const categoryData = allData[cat] || [];
+            const dataWithCategory = categoryData.map(item => {
+                const cleanItem = {...item};
+                // Convert Firestore Timestamps to readable dates
+                Object.keys(cleanItem).forEach(key => {
+                    if (cleanItem[key] && typeof cleanItem[key].toDate === 'function') {
+                        cleanItem[key] = cleanItem[key].toDate().toLocaleString('th-TH');
+                    }
+                });
+                return { Category: cat, ...cleanItem };
+            });
+            dataToExport.push(...dataWithCategory);
+        });
+
+        if (dataToExport.length === 0 && summaryCsvContent.split('\n').length <= 4) { // 4 lines = 2 headers + 2 newlines
+            alert('No data available for the selected categories.');
+            return;
+        }
+
+        // --- Create Raw Data CSV ---
+        const headers = [...new Set(dataToExport.flatMap(obj => Object.keys(obj)))];
+        const sanitizeCell = (cell) => {
+            if (cell === null || cell === undefined) return '';
+            let cellStr = String(cell);
+            if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+                cellStr = cellStr.replace(/"/g, '""');
+                return `"${cellStr}"`;
+            }
+            return cellStr;
+        };
+        let dataCsvContent = headers.join(',') + '\n';
+        dataToExport.forEach(item => {
+            const row = headers.map(header => sanitizeCell(item[header])).join(',');
+            dataCsvContent += row + '\n';
+        });
+
+        // --- Combine and Download ---
+        const finalCsvContent = summaryCsvContent + dataCsvContent;
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); // BOM for UTF-8
+        const blob = new Blob([bom, finalCsvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        
+        const date = new Date().toISOString().slice(0, 10);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `inventory_report_${date}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        hideModal('exportModal');
+    };
+
     // --- Theme Toggle ---
     const themeToggles = [document.getElementById('theme-toggle-desktop'), document.getElementById('theme-toggle-main')];
 

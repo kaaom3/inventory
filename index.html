@@ -158,51 +158,85 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
             <!-- Computers -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <div class="flex items-center space-x-4 mb-4"><div class="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Computers</p><p id="cat-total-computers" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
-                <div class="space-y-2 text-sm pt-2 border-t dark:border-gray-700 mt-2">
-                    <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-computers-active" class="font-medium text-green-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-computers-on-loan" class="font-medium text-yellow-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-computers-repair" class="font-medium text-orange-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-computers-storage" class="font-medium text-gray-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-computers-damaged" class="font-medium text-pink-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-computers-disposed" class="font-medium text-red-500">0</span></div>
-                </div>
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Computers</p>
+                                <p id="cat-total-computers" class="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down text-gray-400 transform group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <div id="computer-type-breakdown" class="mt-4 pt-4 border-t dark:border-gray-700 space-y-4">
+                        <!-- Breakdown will be injected here by JS -->
+                    </div>
+                </details>
             </div>
             <!-- Monitors -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <div class="flex items-center space-x-4 mb-4"><div class="bg-green-100 dark:bg-green-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Monitors</p><p id="cat-total-monitors" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
-                <div class="space-y-2 text-sm pt-2 border-t dark:border-gray-700 mt-2">
-                    <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-monitors-active" class="font-medium text-green-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-monitors-on-loan" class="font-medium text-yellow-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-monitors-repair" class="font-medium text-orange-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-monitors-storage" class="font-medium text-gray-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-monitors-damaged" class="font-medium text-pink-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-monitors-disposed" class="font-medium text-red-500">0</span></div>
-                </div>
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-green-100 dark:bg-green-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Monitors</p>
+                                <p id="cat-total-monitors" class="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down text-gray-400 transform group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <div class="space-y-2 text-sm pt-4 border-t dark:border-gray-700 mt-4">
+                        <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-monitors-active" class="font-medium text-green-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-monitors-on-loan" class="font-medium text-yellow-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-monitors-repair" class="font-medium text-orange-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-monitors-storage" class="font-medium text-gray-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-monitors-damaged" class="font-medium text-pink-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-monitors-disposed" class="font-medium text-red-500">0</span></div>
+                    </div>
+                </details>
             </div>
             <!-- Audio -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <div class="flex items-center space-x-4 mb-4"><div class="bg-red-100 dark:bg-red-900/50 p-3 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Audio</p><p id="cat-total-audio" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
-                <div class="space-y-2 text-sm pt-2 border-t dark:border-gray-700 mt-2">
-                    <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-audio-active" class="font-medium text-green-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-audio-on-loan" class="font-medium text-yellow-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-audio-repair" class="font-medium text-orange-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-audio-storage" class="font-medium text-gray-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-audio-damaged" class="font-medium text-pink-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-audio-disposed" class="font-medium text-red-500">0</span></div>
-                </div>
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-red-100 dark:bg-red-900/50 p-3 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Audio</p>
+                                <p id="cat-total-audio" class="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down text-gray-400 transform group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <div class="space-y-2 text-sm pt-4 border-t dark:border-gray-700 mt-4">
+                        <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-audio-active" class="font-medium text-green-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-audio-on-loan" class="font-medium text-yellow-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-audio-repair" class="font-medium text-orange-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-audio-storage" class="font-medium text-gray-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-audio-damaged" class="font-medium text-pink-500">0</span></div>
+                        <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-audio-disposed" class="font-medium text-red-500">0</span></div>
+                    </div>
+                </details>
             </div>
             <!-- Accessories -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <div class="flex items-center space-x-4 mb-4"><div class="bg-purple-100 dark:bg-purple-900/50 p-3 rounded-full"><i class="fas fa-keyboard text-2xl text-purple-500"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400">Total Accessories</p><p id="cat-total-accessories" class="text-2xl font-bold text-gray-900 dark:text-white">0</p></div></div>
-                <div class="space-y-2 text-sm pt-2 border-t dark:border-gray-700 mt-2">
-                    <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-accessories-active" class="font-medium text-green-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-accessories-on-loan" class="font-medium text-yellow-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-accessories-repair" class="font-medium text-orange-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-accessories-storage" class="font-medium text-gray-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-accessories-damaged" class="font-medium text-pink-500">0</span></div>
-                    <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-accessories-disposed" class="font-medium text-red-500">0</span></div>
-                </div>
+                <details class="group">
+                    <summary class="flex items-center justify-between cursor-pointer">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-purple-100 dark:bg-purple-900/50 p-3 rounded-full"><i class="fas fa-keyboard text-2xl text-purple-500"></i></div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Total Accessories</p>
+                                <p id="cat-total-accessories" class="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down text-gray-400 transform group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <div id="accessory-type-breakdown" class="mt-4 pt-4 border-t dark:border-gray-700 space-y-4">
+                        <!-- Breakdown will be injected here by JS -->
+                    </div>
+                </details>
             </div>
         </div>
         
@@ -805,7 +839,7 @@
         const allDevices = [...computers, ...monitors, ...audio, ...accessories];
         const loanHistory = allData['LoanHistory'] || [];
 
-        const getCountByStatus = (status) => allDevices.filter(d => d.Status === status).length;
+        const getCountByStatus = (data, status) => data.filter(d => d.Status === status).length;
         
         const today = new Date();
         const thirtyDaysFromNow = new Date();
@@ -818,27 +852,82 @@
         });
 
         document.getElementById('stat-total-devices').textContent = allDevices.length;
-        document.getElementById('stat-total-onloan').textContent = getCountByStatus('On Loan');
-        document.getElementById('stat-total-repair').textContent = getCountByStatus('Repair');
-        document.getElementById('stat-total-storage').textContent = getCountByStatus('Storage');
-        document.getElementById('stat-total-damaged').textContent = getCountByStatus('Damaged');
-        document.getElementById('stat-total-disposed').textContent = getCountByStatus('Disposed');
+        document.getElementById('stat-total-onloan').textContent = getCountByStatus(allDevices, 'On Loan');
+        document.getElementById('stat-total-repair').textContent = getCountByStatus(allDevices, 'Repair');
+        document.getElementById('stat-total-storage').textContent = getCountByStatus(allDevices, 'Storage');
+        document.getElementById('stat-total-damaged').textContent = getCountByStatus(allDevices, 'Damaged');
+        document.getElementById('stat-total-disposed').textContent = getCountByStatus(allDevices, 'Disposed');
         document.getElementById('stat-total-warranty-ending').textContent = warrantyEndingSoon.length;
 
-        const updateCategoryCard = (catName, data) => {
-            document.getElementById(`cat-total-${catName}`).textContent = data.length;
-            const getCatCount = (status) => data.filter(d => d.Status === status).length;
-            document.getElementById(`cat-${catName}-active`).textContent = getCatCount('Active');
-            document.getElementById(`cat-${catName}-on-loan`).textContent = getCatCount('On Loan');
-            document.getElementById(`cat-${catName}-repair`).textContent = getCatCount('Repair');
-            document.getElementById(`cat-${catName}-storage`).textContent = getCatCount('Storage');
-            document.getElementById(`cat-${catName}-damaged`).textContent = getCatCount('Damaged');
-            document.getElementById(`cat-${catName}-disposed`).textContent = getCatCount('Disposed');
-        };
-        updateCategoryCard('computers', computers);
-        updateCategoryCard('monitors', monitors);
-        updateCategoryCard('audio', audio);
-        updateCategoryCard('accessories', accessories);
+        // Update Computer Card with Breakdown
+        document.getElementById('cat-total-computers').textContent = computers.length;
+        const computerTypes = collectionConfigs.Computers.dropdowns.Type;
+        const computerBreakdownContainer = document.getElementById('computer-type-breakdown');
+        computerBreakdownContainer.innerHTML = ''; 
+
+        computerTypes.forEach(type => {
+            const computersOfType = computers.filter(c => c.Type === type);
+            if (computersOfType.length > 0) {
+                const typeHtml = `
+                    <div>
+                        <h4 class="font-semibold text-md text-gray-700 dark:text-gray-300 mb-2">${type} (${computersOfType.length})</h4>
+                        <div class="space-y-2 text-sm pl-2">
+                            <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium text-green-500">${getCountByStatus(computersOfType, 'Active')}</span></div>
+                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium text-yellow-500">${getCountByStatus(computersOfType, 'On Loan')}</span></div>
+                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium text-orange-500">${getCountByStatus(computersOfType, 'Repair')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium text-gray-500">${getCountByStatus(computersOfType, 'Storage')}</span></div>
+                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium text-pink-500">${getCountByStatus(computersOfType, 'Damaged')}</span></div>
+                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium text-red-500">${getCountByStatus(computersOfType, 'Disposed')}</span></div>
+                        </div>
+                    </div>
+                `;
+                computerBreakdownContainer.innerHTML += typeHtml;
+            }
+        });
+
+        // Update Monitor Card
+        document.getElementById('cat-total-monitors').textContent = monitors.length;
+        document.getElementById('cat-monitors-active').textContent = getCountByStatus(monitors, 'Active');
+        document.getElementById('cat-monitors-on-loan').textContent = getCountByStatus(monitors, 'On Loan');
+        document.getElementById('cat-monitors-repair').textContent = getCountByStatus(monitors, 'Repair');
+        document.getElementById('cat-monitors-storage').textContent = getCountByStatus(monitors, 'Storage');
+        document.getElementById('cat-monitors-damaged').textContent = getCountByStatus(monitors, 'Damaged');
+        document.getElementById('cat-monitors-disposed').textContent = getCountByStatus(monitors, 'Disposed');
+
+        // Update Audio Card
+        document.getElementById('cat-total-audio').textContent = audio.length;
+        document.getElementById('cat-audio-active').textContent = getCountByStatus(audio, 'Active');
+        document.getElementById('cat-audio-on-loan').textContent = getCountByStatus(audio, 'On Loan');
+        document.getElementById('cat-audio-repair').textContent = getCountByStatus(audio, 'Repair');
+        document.getElementById('cat-audio-storage').textContent = getCountByStatus(audio, 'Storage');
+        document.getElementById('cat-audio-damaged').textContent = getCountByStatus(audio, 'Damaged');
+        document.getElementById('cat-audio-disposed').textContent = getCountByStatus(audio, 'Disposed');
+
+        // Update Accessory Card with Breakdown
+        document.getElementById('cat-total-accessories').textContent = accessories.length;
+        const accessoryTypes = collectionConfigs.Accessory.dropdowns.AccessoryType;
+        const accessoryBreakdownContainer = document.getElementById('accessory-type-breakdown');
+        accessoryBreakdownContainer.innerHTML = ''; 
+
+        accessoryTypes.forEach(type => {
+            const accessoriesOfType = accessories.filter(c => c.AccessoryType === type);
+            if (accessoriesOfType.length > 0) {
+                const typeHtml = `
+                    <div>
+                        <h4 class="font-semibold text-md text-gray-700 dark:text-gray-300 mb-2">${type} (${accessoriesOfType.length})</h4>
+                        <div class="space-y-2 text-sm pl-2">
+                            <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium text-green-500">${getCountByStatus(accessoriesOfType, 'Active')}</span></div>
+                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium text-yellow-500">${getCountByStatus(accessoriesOfType, 'On Loan')}</span></div>
+                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium text-orange-500">${getCountByStatus(accessoriesOfType, 'Repair')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium text-gray-500">${getCountByStatus(accessoriesOfType, 'Storage')}</span></div>
+                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium text-pink-500">${getCountByStatus(accessoriesOfType, 'Damaged')}</span></div>
+                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium text-red-500">${getCountByStatus(accessoriesOfType, 'Disposed')}</span></div>
+                        </div>
+                    </div>
+                `;
+                accessoryBreakdownContainer.innerHTML += typeHtml;
+            }
+        });
 
         const statusCounts = allDevices.reduce((acc, device) => {
             if(device.Status) {

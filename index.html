@@ -29,6 +29,10 @@
 
     /* Print Styles */
     @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       body * {
         visibility: hidden;
       }
@@ -47,6 +51,26 @@
       }
       .no-print {
         display: none !important;
+      }
+       /* Force light theme colors for printing */
+      #printable-area .dark\\:border-gray-400 {
+        border-color: #000 !important;
+      }
+      #printable-area .dark\\:bg-gray-800 {
+        background-color: #fff !important;
+      }
+      #printable-area *, #printable-area p {
+        color: #000 !important;
+      }
+      /* Specific font sizes for printing the label */
+      #printLabelDeviceName {
+        font-size: 11px !important;
+        font-weight: bold;
+        line-height: 1.2 !important;
+      }
+      #printLabelSerial {
+        font-size: 9px !important;
+        word-break: break-all;
       }
     }
   </style>

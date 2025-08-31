@@ -29,6 +29,74 @@
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
     .table-fixed { table-layout: fixed; width: 100%; }
+
+    /* Class to force light theme for image capture */
+    .force-light-theme {
+      background-color: #ffffff !important;
+    }
+    .force-light-theme, .force-light-theme * {
+      color: #000000 !important;
+      border-color: #000000 !important;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      body > *:not(#printLabelModal) {
+          display: none !important;
+      }
+
+      #printLabelModal {
+        visibility: visible !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        opacity: 1 !important;
+        background-color: white !important;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        pointer-events: auto !important;
+      }
+      
+      #printable-area, #printable-area * {
+        visibility: visible !important;
+      }
+      
+       .no-print {
+        display: none !important;
+      }
+      
+       /* Force light theme colors for printing */
+      #printable-area .dark\\:border-gray-400 {
+        border-color: #000 !important;
+      }
+      #printable-area .dark\\:bg-gray-800 {
+        background-color: #fff !important;
+      }
+      #printable-area *, #printable-area p {
+        color: #000 !important;
+      }
+      /* Specific font sizes for printing the label */
+      #printLabelDeviceName {
+        font-size: 6px !important;
+        font-weight: bold;
+        line-height: 1.1 !important;
+      }
+      #printLabelSerial {
+        font-size: 5px !important;
+        word-break: break-all;
+      }
+      #printable-area .font-bold.text-xs {
+        font-size: 6px !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -385,8 +453,8 @@
     <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm flex flex-col items-center">
         <div id="printable-area">
             <!-- 4cm = 151px, 1.5cm = 57px -->
-            <div class="border-2 border-black dark:border-gray-400 p-1 flex flex-col" style="width: 151px; height: 57px;">
-                <div class="text-center font-bold text-xs border-b-2 border-black dark:border-gray-400 pb-0.5">IT Asset</div>
+            <div class="border-2 border-black p-1 flex flex-col" style="width: 151px; height: 57px;">
+                <div class="text-center font-bold text-xs border-b-2 border-black pb-0.5">IT Asset</div>
                 <div class="flex items-center justify-between mt-1 flex-grow">
                     <canvas id="printLabelQrCanvas"></canvas>
                     <div class="text-right flex-grow pl-1 flex flex-col justify-center">
@@ -948,14 +1016,20 @@
         const serialNumber = item[config.serialField] || 'unknown_sn';
         const labelElement = document.getElementById('printable-area');
 
+        // Temporarily apply a class to force light theme for capture
+        const labelInner = labelElement.querySelector('div');
+        labelInner.classList.add('force-light-theme');
+
         html2canvas(labelElement, { 
-            backgroundColor: '#ffffff', // Force white background for consistency
+            backgroundColor: null, // Use transparent background
             scale: 3 // Increase scale for better resolution
         }).then(canvas => {
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/png');
             link.download = `label_${serialNumber}.png`;
             link.click();
+            // Remove the temporary class after capture
+            labelInner.classList.remove('force-light-theme');
         });
     };
 

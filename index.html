@@ -75,13 +75,16 @@
       }
       /* Specific font sizes for printing the label */
       #printLabelDeviceName {
-        font-size: 11px !important;
+        font-size: 6px !important;
         font-weight: bold;
-        line-height: 1.2 !important;
+        line-height: 1.1 !important;
       }
       #printLabelSerial {
-        font-size: 9px !important;
+        font-size: 5px !important;
         word-break: break-all;
+      }
+      #printable-area .font-bold.text-xs {
+        font-size: 6px !important;
       }
     }
   </style>
@@ -439,14 +442,14 @@
   <div id="printLabelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
     <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm">
         <div id="printable-area">
-            <!-- 6cm = 227px, 3cm = 113px -->
-            <div class="border-2 border-black dark:border-gray-400 p-2 flex flex-col" style="width: 227px; height: 113px;">
-                <div class="text-center font-bold text-xs border-b-2 border-black dark:border-gray-400 pb-1">IT Department Asset</div>
+            <!-- 4cm = 151px, 1.5cm = 57px -->
+            <div class="border-2 border-black dark:border-gray-400 p-1 flex flex-col" style="width: 151px; height: 57px;">
+                <div class="text-center font-bold text-xs border-b-2 border-black dark:border-gray-400 pb-0.5">IT Asset</div>
                 <div class="flex items-center justify-between mt-1 flex-grow">
                     <canvas id="printLabelQrCanvas"></canvas>
-                    <div class="text-right flex-grow pl-2 flex flex-col justify-center">
-                        <p id="printLabelDeviceName" class="font-bold text-sm leading-tight break-words"></p>
-                        <p id="printLabelSerial" class="text-xs break-all"></p>
+                    <div class="text-right flex-grow pl-1 flex flex-col justify-center">
+                        <p id="printLabelDeviceName" class="font-bold leading-tight break-words"></p>
+                        <p id="printLabelSerial" class="break-all"></p>
                     </div>
                 </div>
             </div>
@@ -991,7 +994,7 @@
 
         const canvas = document.getElementById('printLabelQrCanvas');
         const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-        QRCode.toCanvas(canvas, url, { width: 72, margin: 1 });
+        QRCode.toCanvas(canvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
         
         document.getElementById('printLabelModal').classList.remove('opacity-0', 'pointer-events-none');
     };
@@ -1436,12 +1439,13 @@
             return;
         }
 
-        const labelWidth = 60; // mm
-        const labelHeight = 30; // mm
+        const labelWidth = 40; // mm
+        const labelHeight = 15; // mm
         const pageMargin = 10; // mm
-        const gap = 5; // mm
-        const labelsPerRow = 3;
-        const labelsPerCol = 9;
+        const gap = 2; // mm
+        const labelsPerRow = Math.floor((210 - (2*pageMargin) + gap) / (labelWidth + gap));
+        const labelsPerCol = Math.floor((297 - (2*pageMargin) + gap) / (labelHeight + gap));
+
         const labelsPerPage = labelsPerRow * labelsPerCol;
         let labelCount = 0;
         
@@ -1470,30 +1474,30 @@
             doc.rect(x, y, labelWidth, labelHeight);
 
             // Add header
-            doc.setFontSize(8);
+            doc.setFontSize(6);
             doc.setFont('helvetica', 'bold');
-            doc.text('IT Department Asset', x + labelWidth / 2, y + 4, { align: 'center' });
-            doc.line(x + 1, y + 5, x + labelWidth - 1, y + 5);
+            doc.text('IT Department Asset', x + labelWidth / 2, y + 2.5, { align: 'center' });
+            doc.line(x + 1, y + 3, x + labelWidth - 1, y + 3);
 
             // Generate QR Code
             const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-            await QRCode.toCanvas(qrCanvas, url, { width: 72, margin: 1 });
+            await QRCode.toCanvas(qrCanvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
             const qrImgData = qrCanvas.toDataURL('image/png');
 
             // Add QR code image
-            const qrSize = 18; // mm
-            doc.addImage(qrImgData, 'PNG', x + 3, y + 7, qrSize, qrSize);
+            const qrSize = 10; // mm
+            doc.addImage(qrImgData, 'PNG', x + 1, y + 4, qrSize, qrSize);
 
             // Add text
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            const nameLines = doc.splitTextToSize(deviceName, labelWidth - qrSize - 6); 
-            doc.text(nameLines, x + qrSize + 5, y + 13);
-            
             doc.setFontSize(7);
+            doc.setFont('helvetica', 'bold');
+            const nameLines = doc.splitTextToSize(deviceName, labelWidth - qrSize - 3); 
+            doc.text(nameLines, x + qrSize + 2, y + 7);
+            
+            doc.setFontSize(5);
             doc.setFont('helvetica', 'normal');
-            const snLines = doc.splitTextToSize(`SN: ${serialNumber}`, labelWidth - qrSize - 6);
-            doc.text(snLines, x + qrSize + 5, y + 13 + (nameLines.length * 3.5));
+            const snLines = doc.splitTextToSize(`SN: ${serialNumber}`, labelWidth - qrSize - 3);
+            doc.text(snLines, x + qrSize + 2, y + 7 + (nameLines.length * 2.5));
 
             labelCount++;
         }

@@ -440,7 +440,7 @@
     </div>
   </div>
   <div id="printLabelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
-    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm flex flex-col items-center">
         <div id="printable-area">
             <!-- 4cm = 151px, 1.5cm = 57px -->
             <div class="border-2 border-black dark:border-gray-400 p-1 flex flex-col" style="width: 151px; height: 57px;">
@@ -454,7 +454,7 @@
                 </div>
             </div>
         </div>
-        <div class="mt-6 flex justify-end space-x-4 no-print">
+        <div class="mt-6 flex justify-end space-x-4 no-print w-full">
             <button onclick="hideModal('printLabelModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button>
             <button onclick="printLabel()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                 <i class="fas fa-print mr-2"></i>Print Label

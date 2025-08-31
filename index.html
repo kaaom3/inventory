@@ -29,74 +29,6 @@
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
     .table-fixed { table-layout: fixed; width: 100%; }
-
-    /* Class to force light theme for image capture */
-    .force-light-theme {
-      background-color: #ffffff !important;
-    }
-    .force-light-theme, .force-light-theme * {
-      color: #000000 !important;
-      border-color: #000000 !important;
-    }
-
-    /* Print Styles */
-    @media print {
-      body {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      
-      body > *:not(#printLabelModal) {
-          display: none !important;
-      }
-
-      #printLabelModal {
-        visibility: visible !important;
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        opacity: 1 !important;
-        background-color: white !important;
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        pointer-events: auto !important;
-      }
-      
-      #printable-area, #printable-area * {
-        visibility: visible !important;
-      }
-      
-       .no-print {
-        display: none !important;
-      }
-      
-       /* Force light theme colors for printing */
-      #printable-area .dark\\:border-gray-400 {
-        border-color: #000 !important;
-      }
-      #printable-area .dark\\:bg-gray-800 {
-        background-color: #fff !important;
-      }
-      #printable-area *, #printable-area p {
-        color: #000 !important;
-      }
-      /* Specific font sizes for printing the label */
-      #printLabelDeviceName {
-        font-size: 6px !important;
-        font-weight: bold;
-        line-height: 1.1 !important;
-      }
-      #printLabelSerial {
-        font-size: 5px !important;
-        word-break: break-all;
-      }
-      #printable-area .font-bold.text-xs {
-        font-size: 6px !important;
-      }
-    }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -449,23 +381,23 @@
         </div>
     </div>
   </div>
-  <div id="printLabelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+  <div id="labelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
     <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm flex flex-col items-center">
-        <div id="printable-area">
+        <div id="label-preview-area">
             <!-- 4cm = 151px, 1.5cm = 57px -->
             <div class="border-2 border-black p-1 flex flex-col" style="width: 151px; height: 57px;">
                 <div class="text-center font-bold text-xs border-b-2 border-black pb-0.5">IT Asset</div>
                 <div class="flex items-center justify-between mt-1 flex-grow">
-                    <canvas id="printLabelQrCanvas"></canvas>
+                    <canvas id="labelQrCanvas"></canvas>
                     <div class="text-right flex-grow pl-1 flex flex-col justify-center" style="min-width: 0;">
-                        <p id="printLabelDeviceName" class="font-bold text-[9px] leading-tight break-words"></p>
-                        <p id="printLabelSerial" class="text-[7px] break-all"></p>
+                        <p id="labelDeviceName" class="font-bold text-[9px] leading-tight break-words"></p>
+                        <p id="labelSerial" class="text-[7px] break-all"></p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="mt-6 flex justify-end space-x-4 no-print w-full">
-            <button onclick="hideModal('printLabelModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button>
+            <button onclick="hideModal('labelModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button>
             <button id="downloadLabelButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                 <i class="fas fa-image mr-2"></i>Download Image
             </button>
@@ -663,7 +595,7 @@
                     
                     tr.innerHTML += `<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-200 ${extraClasses}" title="${rawValue}">${cellValue}</td>`;
                 });
-                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4 whitespace-nowrap"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" title="Edit"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Delete"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" title="Show QR"><i class="fas fa-qrcode"></i></button><button onclick="openPrintModal('${collectionName}', '${item.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" title="Download Label"><i class="fas fa-download"></i></button></td>`;
+                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4 whitespace-nowrap"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" title="Edit"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Delete"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" title="Show QR"><i class="fas fa-qrcode"></i></button><button onclick="openLabelModal('${collectionName}', '${item.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" title="Download Label"><i class="fas fa-download"></i></button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -988,7 +920,7 @@
         document.getElementById('qrModal').classList.remove('opacity-0', 'pointer-events-none');
     };
 
-    window.openPrintModal = (collectionName, id) => {
+    window.openLabelModal = (collectionName, id) => {
         const config = collectionConfigs[collectionName];
         const item = allData[collectionName].find(i => i.id === id);
         if (!item) {
@@ -999,22 +931,22 @@
         const deviceName = item[config.nameField] || 'N/A';
         const serialNumber = item[config.serialField] || 'N/A';
         
-        document.getElementById('printLabelDeviceName').textContent = deviceName;
-        document.getElementById('printLabelSerial').textContent = `SN: ${serialNumber}`;
+        document.getElementById('labelDeviceName').textContent = deviceName;
+        document.getElementById('labelSerial').textContent = `SN: ${serialNumber}`;
 
-        const canvas = document.getElementById('printLabelQrCanvas');
+        const canvas = document.getElementById('labelQrCanvas');
         const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
         QRCode.toCanvas(canvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
         
         const downloadBtn = document.getElementById('downloadLabelButton');
         downloadBtn.onclick = () => downloadLabelAsImage(item, config);
 
-        document.getElementById('printLabelModal').classList.remove('opacity-0', 'pointer-events-none');
+        document.getElementById('labelModal').classList.remove('opacity-0', 'pointer-events-none');
     };
 
     window.downloadLabelAsImage = (item, config) => {
         const serialNumber = item[config.serialField] || 'unknown_sn';
-        const labelElement = document.getElementById('printable-area');
+        const labelElement = document.getElementById('label-preview-area');
 
         // Temporarily apply a class to force light theme for capture
         const labelInner = labelElement.querySelector('div');

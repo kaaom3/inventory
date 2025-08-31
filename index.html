@@ -28,65 +28,6 @@
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
     .table-fixed { table-layout: fixed; width: 100%; }
-
-    /* Print Styles */
-    @media print {
-      body {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      
-      body > *:not(#printLabelModal) {
-          display: none !important;
-      }
-
-      #printLabelModal {
-        visibility: visible !important;
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        opacity: 1 !important;
-        background-color: white !important;
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        pointer-events: auto !important;
-      }
-      
-      #printable-area, #printable-area * {
-        visibility: visible !important;
-      }
-      
-       .no-print {
-        display: none !important;
-      }
-      
-       /* Force light theme colors for printing */
-      #printable-area .dark\\:border-gray-400 {
-        border-color: #000 !important;
-      }
-      #printable-area .dark\\:bg-gray-800 {
-        background-color: #fff !important;
-      }
-      #printable-area *, #printable-area p {
-        color: #000 !important;
-      }
-      /* Specific font sizes for printing the label */
-      #printLabelDeviceName {
-        font-size: 6px !important;
-        font-weight: bold;
-        line-height: 1.1 !important;
-      }
-      #printLabelSerial {
-        font-size: 5px !important;
-        word-break: break-all;
-      }
-      #printable-area .font-bold.text-xs {
-        font-size: 6px !important;
-      }
-    }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -448,16 +389,16 @@
                 <div class="flex items-center justify-between mt-1 flex-grow">
                     <canvas id="printLabelQrCanvas"></canvas>
                     <div class="text-right flex-grow pl-1 flex flex-col justify-center">
-                        <p id="printLabelDeviceName" class="font-bold text-xs leading-tight break-words"></p>
-                        <p id="printLabelSerial" class="text-[9px] break-all"></p>
+                        <p id="printLabelDeviceName" class="font-bold text-[10px] leading-tight break-words"></p>
+                        <p id="printLabelSerial" class="text-[8px] break-all"></p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="mt-6 flex justify-end space-x-4 no-print w-full">
             <button onclick="hideModal('printLabelModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button>
-            <button onclick="printLabel()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <i class="fas fa-print mr-2"></i>Print Label
+            <button id="downloadLabelButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <i class="fas fa-download mr-2"></i>Download Label
             </button>
         </div>
     </div>
@@ -996,11 +937,53 @@
         const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
         QRCode.toCanvas(canvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
         
+        const downloadBtn = document.getElementById('downloadLabelButton');
+        downloadBtn.onclick = () => downloadSingleLabel(item, config);
+
         document.getElementById('printLabelModal').classList.remove('opacity-0', 'pointer-events-none');
     };
 
-    window.printLabel = () => {
-        window.print();
+    window.downloadSingleLabel = async (item, config) => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: [40, 15] // Custom format: width 40mm, height 15mm
+        });
+
+        const deviceName = item[config.nameField] || 'N/A';
+        const serialNumber = item[config.serialField] || 'N/A';
+        
+        // --- Re-create label content in PDF ---
+        const labelWidth = 40;
+        const labelHeight = 15;
+        const x = 0;
+        const y = 0;
+
+        doc.setFontSize(6);
+        doc.setFont('helvetica', 'bold');
+        doc.text('IT Asset', x + labelWidth / 2, y + 2.5, { align: 'center' });
+        doc.line(x + 1, y + 3, x + labelWidth - 1, y + 3);
+
+        const qrCanvas = document.createElement('canvas');
+        const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
+        await QRCode.toCanvas(qrCanvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
+        const qrImgData = qrCanvas.toDataURL('image/png');
+
+        const qrSize = 10; // mm
+        doc.addImage(qrImgData, 'PNG', x + 1, y + 4, qrSize, qrSize);
+
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        const nameLines = doc.splitTextToSize(deviceName, labelWidth - qrSize - 3); 
+        doc.text(nameLines, x + qrSize + 2, y + 7);
+        
+        doc.setFontSize(5);
+        doc.setFont('helvetica', 'normal');
+        const snLines = doc.splitTextToSize(`SN: ${serialNumber}`, labelWidth - qrSize - 3);
+        doc.text(snLines, x + qrSize + 2, y + 7 + (nameLines.length * 2.5));
+
+        doc.save(`label_${serialNumber}.pdf`);
     };
 
     function listenToCollection(collectionName, config) {

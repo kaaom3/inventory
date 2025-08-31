@@ -10,8 +10,9 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- jsPDF Library for PDF Export -->
+  <!-- jsPDF & html2canvas Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body { font-family: 'Inter', sans-serif; }
     .page-content { display: none; }
@@ -398,7 +399,7 @@
         <div class="mt-6 flex justify-end space-x-4 no-print w-full">
             <button onclick="hideModal('printLabelModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button>
             <button id="downloadLabelButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <i class="fas fa-download mr-2"></i>Download Label
+                <i class="fas fa-image mr-2"></i>Download Image
             </button>
         </div>
     </div>
@@ -594,7 +595,7 @@
                     
                     tr.innerHTML += `<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-200 ${extraClasses}" title="${rawValue}">${cellValue}</td>`;
                 });
-                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4 whitespace-nowrap"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" title="Edit"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Delete"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" title="Show QR"><i class="fas fa-qrcode"></i></button><button onclick="openPrintModal('${collectionName}', '${item.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" title="Print Label"><i class="fas fa-print"></i></button></td>`;
+                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4 whitespace-nowrap"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" title="Edit"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Delete"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" title="Show QR"><i class="fas fa-qrcode"></i></button><button onclick="openPrintModal('${collectionName}', '${item.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" title="Download Label"><i class="fas fa-download"></i></button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -938,52 +939,24 @@
         QRCode.toCanvas(canvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
         
         const downloadBtn = document.getElementById('downloadLabelButton');
-        downloadBtn.onclick = () => downloadSingleLabel(item, config);
+        downloadBtn.onclick = () => downloadLabelAsImage(item, config);
 
         document.getElementById('printLabelModal').classList.remove('opacity-0', 'pointer-events-none');
     };
 
-    window.downloadSingleLabel = async (item, config) => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: [40, 15] // Custom format: width 40mm, height 15mm
+    window.downloadLabelAsImage = (item, config) => {
+        const serialNumber = item[config.serialField] || 'unknown_sn';
+        const labelElement = document.getElementById('printable-area');
+
+        html2canvas(labelElement, { 
+            backgroundColor: '#ffffff', // Force white background for consistency
+            scale: 3 // Increase scale for better resolution
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `label_${serialNumber}.png`;
+            link.click();
         });
-
-        const deviceName = item[config.nameField] || 'N/A';
-        const serialNumber = item[config.serialField] || 'N/A';
-        
-        // --- Re-create label content in PDF ---
-        const labelWidth = 40;
-        const labelHeight = 15;
-        const x = 0;
-        const y = 0;
-
-        doc.setFontSize(6);
-        doc.setFont('helvetica', 'bold');
-        doc.text('IT Asset', x + labelWidth / 2, y + 2.5, { align: 'center' });
-        doc.line(x + 1, y + 3, x + labelWidth - 1, y + 3);
-
-        const qrCanvas = document.createElement('canvas');
-        const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-        await QRCode.toCanvas(qrCanvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
-        const qrImgData = qrCanvas.toDataURL('image/png');
-
-        const qrSize = 10; // mm
-        doc.addImage(qrImgData, 'PNG', x + 1, y + 4, qrSize, qrSize);
-
-        doc.setFontSize(7);
-        doc.setFont('helvetica', 'bold');
-        const nameLines = doc.splitTextToSize(deviceName, labelWidth - qrSize - 3); 
-        doc.text(nameLines, x + qrSize + 2, y + 7);
-        
-        doc.setFontSize(5);
-        doc.setFont('helvetica', 'normal');
-        const snLines = doc.splitTextToSize(`SN: ${serialNumber}`, labelWidth - qrSize - 3);
-        doc.text(snLines, x + qrSize + 2, y + 7 + (nameLines.length * 2.5));
-
-        doc.save(`label_${serialNumber}.pdf`);
     };
 
     function listenToCollection(collectionName, config) {

@@ -431,7 +431,7 @@
 
     const collectionConfigs = {
         Computers: { 
-            headers: ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location'], 
+            headers: ['Online Status', 'ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location'], 
             formFields: ['ComputerName', 'Manufacturer', 'Model', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyStartDate', 'WarrantyEndDate'], 
             nameField: 'ComputerName', 
             serialField: 'SerialNumber', 
@@ -574,7 +574,21 @@
                     const rawValue = item[header] || '';
                     let cellValue = rawValue;
                     
-                    if (header === 'WarrantyEndDate' && item.WarrantyEndDate) {
+                    if (header === 'Online Status' && collectionName === 'Computers') {
+                        if (item.LastSeen && typeof item.LastSeen.toDate === 'function') {
+                            const lastSeenDate = item.LastSeen.toDate();
+                            const now = new Date();
+                            const diffMinutes = (now.getTime() - lastSeenDate.getTime()) / (1000 * 60);
+
+                            if (diffMinutes <= 5) { // 5-minute online threshold
+                                cellValue = `<div class="flex items-center"><div class="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div> Online</div>`;
+                            } else {
+                                cellValue = `<div class="flex items-center"><div class="h-2.5 w-2.5 rounded-full bg-gray-400 mr-2"></div> Offline</div>`;
+                            }
+                        } else {
+                            cellValue = `<div class="flex items-center"><div class="h-2.5 w-2.5 rounded-full bg-gray-400 mr-2"></div> Unknown</div>`;
+                        }
+                    } else if (header === 'WarrantyEndDate' && item.WarrantyEndDate) {
                         const endDate = new Date(item.WarrantyEndDate);
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
@@ -599,7 +613,6 @@
                         }
                     }
 
-                    // **START: LOGIC การแสดงผลประวัติ **
                     if (collectionName === 'Computers') {
                         if (header === 'UserName' && Array.isArray(item.PreviousUserNames) && item.PreviousUserNames.length > 0) {
                             const history = item.PreviousUserNames.join(', ');
@@ -610,7 +623,6 @@
                             cellValue = `<span class="flex items-center">${rawValue} <i class="fas fa-history text-xs text-gray-400 ml-2" title="Previous Names: ${history}"></i></span>`;
                         }
                     }
-                    // **END: LOGIC การแสดงผลประวัติ **
 
                     let extraClasses = 'whitespace-nowrap';
                     if (header === 'ComputerName' || header === 'ItemName' || header === 'Model' || header === 'UserName' || header === 'Location') {

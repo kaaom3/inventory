@@ -386,18 +386,20 @@
         </div>
     </div>
   </div>
-  <div id="labelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+    <div id="labelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
     <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md flex flex-col items-center">
         <h3 class="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Label Preview</h3>
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Intended print size: 4cm x 1.5cm</p>
         <div id="label-preview-area" style="width: 302px; height: 114px;">
-            <div class="border-2 border-black p-2 flex flex-col bg-white h-full w-full">
+            <div class="border-2 border-black p-2 flex flex-col bg-white h-full w-full box-border">
                 <div class="text-center font-bold text-lg border-b-2 border-black pb-1">IT Asset</div>
-                <div class="flex items-center justify-between mt-2 flex-grow">
-                    <canvas id="labelQrCanvas"></canvas>
-                    <div class="text-right flex-grow pl-2 flex flex-col justify-center" style="min-width: 0;">
+                <div class="flex items-center mt-2 flex-grow">
+                    <div style="flex-shrink: 0;">
+                        <canvas id="labelQrCanvas"></canvas>
+                    </div>
+                    <div class="flex-1 text-right pl-2 flex flex-col justify-center overflow-hidden">
                         <p id="labelDeviceName" class="font-bold text-[16px] leading-tight break-words"></p>
-                        <p id="labelSerial" class="text-[12px] break-all"></p>
+                        <p id="labelSerial" class="text-[12px] break-words"></p>
                     </div>
                 </div>
             </div>
@@ -604,6 +606,19 @@
                             cellValue = `<span>${rawValue} <span class="${colorClass} text-xs">${daysText}</span></span>`;
                         }
                     }
+
+                    // **START: LOGIC การแสดงผลประวัติ **
+                    if (collectionName === 'Computers') {
+                        if (header === 'UserName' && Array.isArray(item.PreviousUserNames) && item.PreviousUserNames.length > 0) {
+                            const history = item.PreviousUserNames.join(', ');
+                            cellValue = `<span class="flex items-center">${rawValue} <i class="fas fa-history text-xs text-gray-400 ml-2" title="Previous Users: ${history}"></i></span>`;
+                        }
+                        if (header === 'ComputerName' && Array.isArray(item.PreviousComputerNames) && item.PreviousComputerNames.length > 0) {
+                            const history = item.PreviousComputerNames.join(', ');
+                            cellValue = `<span class="flex items-center">${rawValue} <i class="fas fa-history text-xs text-gray-400 ml-2" title="Previous Names: ${history}"></i></span>`;
+                        }
+                    }
+                    // **END: LOGIC การแสดงผลประวัติ **
 
                     let extraClasses = 'whitespace-nowrap';
                     if (header === 'ComputerName' || header === 'ItemName' || header === 'Model' || header === 'UserName' || header === 'Location') {
@@ -999,12 +1014,13 @@
         const serialNumber = item[config.serialField] || 'unknown_sn';
         const labelElement = document.getElementById('label-preview-area');
 
-        const labelInner = labelElement.querySelector('div');
-        labelInner.classList.add('force-light-theme');
+        // Apply a class to the captured element to force light theme for consistent output
+        labelElement.classList.add('force-light-theme');
 
-        html2canvas(labelElement, { 
+        html2canvas(labelElement, {
             backgroundColor: null,
-            scale: 3,
+            scale: 3, // Increase scale for better resolution
+            // Explicitly set the canvas dimensions to match the element
             width: labelElement.offsetWidth,
             height: labelElement.offsetHeight
         }).then(canvas => {
@@ -1012,7 +1028,8 @@
             link.href = canvas.toDataURL('image/png');
             link.download = `label_${serialNumber}.png`;
             link.click();
-            labelInner.classList.remove('force-light-theme');
+            // Remove the temporary class after the capture is complete
+            labelElement.classList.remove('force-light-theme');
         });
     };
 

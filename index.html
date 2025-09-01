@@ -29,6 +29,8 @@
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
     .table-fixed { table-layout: fixed; width: 100%; }
+    .force-light-theme { background-color: white !important; color: black !important; }
+    .force-light-theme * { color: black !important; border-color: black !important; }
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -114,11 +116,14 @@
       <div id="dashboard-page" class="page-content">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 md:mb-0">Dashboard</h2>
-            <div class="flex items-center space-x-2 w-full md:w-auto">
-                 <button onclick="exportAllQrToPdf()" class="w-full md:w-auto bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                 <button onclick="exportAllQrToPdf()" class="w-full sm:w-auto bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">
                     <i class="fas fa-file-pdf mr-2"></i>Export All QR
                 </button>
-                <button onclick="openExportModal()" class="w-full md:w-auto bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                <button onclick="exportNewQrToPdf()" class="w-full sm:w-auto bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                    <i class="fas fa-file-pdf mr-2"></i>Export New QR
+                </button>
+                <button onclick="openExportModal()" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
                     <i class="fas fa-file-excel mr-2"></i>Export Report
                 </button>
                 <button id="theme-toggle-main" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none md:hidden">
@@ -382,16 +387,18 @@
     </div>
   </div>
   <div id="labelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
-    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm flex flex-col items-center">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md flex flex-col items-center">
+        <h3 class="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Label Preview</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Intended print size: 4cm x 1.5cm</p>
         <div id="label-preview-area">
-            <!-- 4cm = 151px, 1.5cm = 57px -->
-            <div class="border-2 border-black p-1 flex flex-col" style="width: 151px; height: 57px;">
-                <div class="text-center font-bold text-xs border-b-2 border-black pb-0.5">IT Asset</div>
-                <div class="flex items-center justify-between mt-1 flex-grow">
+            <!-- Scaled up 2x for better viewing. Original: 151px x 57px -->
+            <div class="border-2 border-black p-2 flex flex-col bg-white" style="width: 302px; height: 114px;">
+                <div class="text-center font-bold text-lg border-b-2 border-black pb-1">IT Asset</div>
+                <div class="flex items-center justify-between mt-2 flex-grow">
                     <canvas id="labelQrCanvas"></canvas>
-                    <div class="text-right flex-grow pl-1 flex flex-col justify-center" style="min-width: 0;">
-                        <p id="labelDeviceName" class="font-bold text-[9px] leading-tight break-words"></p>
-                        <p id="labelSerial" class="text-[7px] break-all"></p>
+                    <div class="text-right flex-grow pl-2 flex flex-col justify-center" style="min-width: 0;">
+                        <p id="labelDeviceName" class="font-bold text-[16px] leading-tight break-words"></p>
+                        <p id="labelSerial" class="text-[12px] break-all"></p>
                     </div>
                 </div>
             </div>
@@ -404,6 +411,17 @@
         </div>
     </div>
 </div>
+  <!-- Custom Notification Modal -->
+    <div id="notificationModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm text-center">
+            <div id="modalIcon"></div>
+            <h3 id="modalTitle" class="text-xl font-semibold mt-4"></h3>
+            <p id="modalMessage" class="text-gray-600 dark:text-gray-300 mt-2"></p>
+            <div class="mt-6">
+                <button onclick="hideModal('notificationModal')" class="px-6 py-2 bg-indigo-600 text-white rounded-lg w-full">Close</button>
+            </div>
+        </div>
+    </div>
   
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -893,19 +911,52 @@
 
     window.hideModal = (modalId) => document.getElementById(modalId).classList.add('opacity-0', 'pointer-events-none');
 
+    function showNotificationModal(type, title, message) {
+        const modal = document.getElementById('notificationModal');
+        const iconDiv = document.getElementById('modalIcon');
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalMessage').textContent = message;
+
+        let iconHtml = '';
+        if (type === 'success') {
+            iconHtml = `<div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/50"><i class="fas fa-check text-2xl text-green-600 dark:text-green-400"></i></div>`;
+        } else if (type === 'info') {
+            iconHtml = `<div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50"><i class="fas fa-info-circle text-2xl text-blue-600 dark:text-blue-400"></i></div>`;
+        } else if (type === 'warning') {
+            iconHtml = `<div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/50"><i class="fas fa-exclamation-triangle text-2xl text-yellow-600 dark:text-yellow-400"></i></div>`;
+        }
+        iconDiv.innerHTML = iconHtml;
+
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
     window.saveData = async () => {
         const formData = new FormData(document.getElementById('editForm'));
         const data = Object.fromEntries(formData.entries());
         const { mode, collection, id } = currentEdit;
         try {
-            if (mode === 'edit') await setDoc(doc(db, collection, id), data, { merge: true });
-            else await addDoc(collection(db, collection), data);
+            if (mode === 'edit') {
+                await setDoc(doc(db, collection, id), data, { merge: true });
+            } else {
+                data.Timestamp = serverTimestamp(); // Add timestamp for new items
+                await addDoc(collection(db, collection), data);
+            }
             hideModal('editModal');
-        } catch (error) { console.error("Error:", error); alert("Failed to save."); }
+        } catch (error) { 
+            console.error("Error saving data:", error); 
+            showNotificationModal('warning', 'Save Failed', 'Could not save the data. Please check the console for more details.');
+        }
     };
 
     window.deleteItem = async (collectionName, id) => {
-        if (confirm(`Are you sure?`)) try { await deleteDoc(doc(db, collectionName, id)); } catch (error) { console.error("Error:", error); alert("Failed to delete."); }
+        if (confirm(`Are you sure you want to delete this item?`)) {
+            try { 
+                await deleteDoc(doc(db, collectionName, id)); 
+            } catch (error) { 
+                console.error("Error deleting item:", error); 
+                showNotificationModal('warning', 'Delete Failed', 'Could not delete the item.');
+            }
+        }
     };
 
     window.showQrModal = (data, name, type) => {
@@ -924,7 +975,7 @@
         const config = collectionConfigs[collectionName];
         const item = allData[collectionName].find(i => i.id === id);
         if (!item) {
-            alert('Device not found!');
+            showNotificationModal('warning', 'Not Found', 'Device could not be found.');
             return;
         }
 
@@ -936,7 +987,8 @@
 
         const canvas = document.getElementById('labelQrCanvas');
         const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-        QRCode.toCanvas(canvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
+        // Scaled up 2x for the larger preview. Original width: 45
+        QRCode.toCanvas(canvas, url, { width: 90, margin: 1, errorCorrectionLevel: 'H' });
         
         const downloadBtn = document.getElementById('downloadLabelButton');
         downloadBtn.onclick = () => downloadLabelAsImage(item, config);
@@ -1282,7 +1334,7 @@
     window.exportToCsv = () => {
         const checkboxes = document.querySelectorAll('input[name="export-category"]:checked');
         if (checkboxes.length === 0) {
-            alert('Please select at least one category to export.');
+            showNotificationModal('warning', 'No Selection', 'Please select at least one category to export.');
             return;
         }
 
@@ -1345,7 +1397,7 @@
         });
 
         if (dataToExport.length === 0 && summaryCsvContent.split('\n').length <= 4) { // 4 lines = 2 headers + 2 newlines
-            alert('No data available for the selected categories.');
+            showNotificationModal('warning', 'No Data', 'No data available for the selected categories.');
             return;
         }
 
@@ -1384,45 +1436,30 @@
         hideModal('exportModal');
     };
 
-    window.exportAllQrToPdf = async () => {
-        alert('Generating PDF of all QR labels. This may take a moment...');
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4'); // A4, portrait, millimeters
-
-        const allDevices = [
-            ...allData.Computers,
-            ...allData.Monitors,
-            ...allData.Audio,
-            ...allData.Accessory
-        ];
-
-        if(allDevices.length === 0) {
-            alert('No devices to export.');
+    async function generateQrPdf(deviceList, fileName) {
+        if(deviceList.length === 0) {
+            hideModal('notificationModal');
+            showNotificationModal('warning', 'No Devices Found', 'There are no devices matching the criteria to export.');
             return;
         }
 
-        const labelWidth = 40; // mm
-        const labelHeight = 15; // mm
-        const pageMargin = 10; // mm
-        const gap = 2; // mm
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+
+        const labelWidth = 40, labelHeight = 15, pageMargin = 10, gap = 2;
         const labelsPerRow = Math.floor((210 - (2*pageMargin) + gap) / (labelWidth + gap));
         const labelsPerCol = Math.floor((297 - (2*pageMargin) + gap) / (labelHeight + gap));
-
         const labelsPerPage = labelsPerRow * labelsPerCol;
         let labelCount = 0;
         
-        // Create an off-screen canvas for QR code generation
         const qrCanvas = document.createElement('canvas');
 
-        for (const item of allDevices) {
-            if (labelCount > 0 && labelCount % labelsPerPage === 0) {
-                doc.addPage();
-            }
+        for (const item of deviceList) {
+            if (labelCount > 0 && labelCount % labelsPerPage === 0) doc.addPage();
 
             const indexOnPage = labelCount % labelsPerPage;
             const col = indexOnPage % labelsPerRow;
             const row = Math.floor(indexOnPage / labelsPerRow);
-
             const x = pageMargin + col * (labelWidth + gap);
             const y = pageMargin + row * (labelHeight + gap);
             
@@ -1432,25 +1469,18 @@
             const deviceName = item[config.nameField] || 'N/A';
             const serialNumber = item[config.serialField] || 'N/A';
 
-            // Draw label border
             doc.rect(x, y, labelWidth, labelHeight);
-
-            // Add header
             doc.setFontSize(6);
             doc.setFont('helvetica', 'bold');
             doc.text('IT Department Asset', x + labelWidth / 2, y + 2.5, { align: 'center' });
             doc.line(x + 1, y + 3, x + labelWidth - 1, y + 3);
 
-            // Generate QR Code
             const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
             await QRCode.toCanvas(qrCanvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
             const qrImgData = qrCanvas.toDataURL('image/png');
-
-            // Add QR code image
-            const qrSize = 10; // mm
+            const qrSize = 10;
             doc.addImage(qrImgData, 'PNG', x + 1, y + 4, qrSize, qrSize);
 
-            // Add text
             doc.setFontSize(7);
             doc.setFont('helvetica', 'bold');
             const nameLines = doc.splitTextToSize(deviceName, labelWidth - qrSize - 3); 
@@ -1463,8 +1493,26 @@
 
             labelCount++;
         }
+        
+        doc.save(fileName);
+        hideModal('notificationModal');
+    }
 
-        doc.save(`all_qr_labels_${new Date().toISOString().slice(0, 10)}.pdf`);
+    window.exportAllQrToPdf = async () => {
+        showNotificationModal('info', 'Generating PDF', 'Preparing PDF for all QR labels. This may take a moment...');
+        const allDevices = [ ...allData.Computers, ...allData.Monitors, ...allData.Audio, ...allData.Accessory ];
+        await generateQrPdf(allDevices, `all_qr_labels_${new Date().toISOString().slice(0, 10)}.pdf`);
+    };
+
+    window.exportNewQrToPdf = async () => {
+        showNotificationModal('info', 'Generating PDF', 'Checking for new devices and preparing your PDF...');
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const allDevices = [ ...allData.Computers, ...allData.Monitors, ...allData.Audio, ...allData.Accessory ];
+        const newDevices = allDevices.filter(d => d.Timestamp && d.Timestamp.toDate() > sevenDaysAgo);
+
+        await generateQrPdf(newDevices, `new_devices_qr_${new Date().toISOString().slice(0, 10)}.pdf`);
     };
 
     // --- Theme Toggle ---

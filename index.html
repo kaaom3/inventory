@@ -53,10 +53,6 @@
                 <i class="fas fa-cubes text-2xl text-indigo-600"></i>
                 <h1 class="text-xl font-bold text-gray-800 dark:text-white">Inventory</h1>
             </div>
-             <button id="theme-toggle-desktop" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none hidden md:block">
-                <i class="fas fa-moon text-gray-500 dark:text-gray-400"></i>
-                <i class="fas fa-sun text-gray-500 dark:text-gray-400 hidden"></i>
-            </button>
         </div>
         <ul class="space-y-2">
             <li><a href="#" id="nav-dashboard" onclick="loadPage('Dashboard', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-tachometer-alt w-5 text-center"></i><span>Dashboard</span></a></li>
@@ -125,10 +121,6 @@
                 </button>
                 <button onclick="openExportModal()" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
                     <i class="fas fa-file-excel mr-2"></i>Export Report
-                </button>
-                <button id="theme-toggle-main" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none md:hidden">
-                    <i class="fas fa-moon text-gray-500 dark:text-gray-400"></i>
-                    <i class="fas fa-sun text-gray-500 dark:text-gray-400 hidden"></i>
                 </button>
             </div>
         </div>
@@ -1531,26 +1523,12 @@
         await generateQrPdf(newDevices, `new_devices_qr_${new Date().toISOString().slice(0, 10)}.pdf`);
     };
 
-    // --- Theme Toggle ---
-    const themeToggles = [document.getElementById('theme-toggle-desktop'), document.getElementById('theme-toggle-main')];
-
+    // --- Theme Control ---
     function applyTheme(theme) {
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
-            themeToggles.forEach(toggle => {
-                if(toggle) {
-                    toggle.querySelector('.fa-moon').classList.add('hidden');
-                    toggle.querySelector('.fa-sun').classList.remove('hidden');
-                }
-            });
         } else {
             document.documentElement.classList.remove('dark');
-            themeToggles.forEach(toggle => {
-                if(toggle) {
-                    toggle.querySelector('.fa-moon').classList.remove('hidden');
-                    toggle.querySelector('.fa-sun').classList.add('hidden');
-                }
-            });
         }
         if (statusChart) {
             Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#6b7280';
@@ -1560,20 +1538,15 @@
         }
     }
 
-    themeToggles.forEach(btn => {
-        if(btn) {
-            btn.addEventListener('click', function() {
-                const isDark = document.documentElement.classList.toggle('dark');
-                localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
-                applyTheme(isDark ? 'dark' : 'light');
-            });
-        }
-    });
-
     window.addEventListener('load', () => {
-        const savedTheme = localStorage.getItem('color-theme');
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
+        // --- Automatic Theme based on Time ---
+        const currentHour = new Date().getHours();
+        // Set dark mode from 6 PM (18) to 5:59 AM (5)
+        if (currentHour >= 18 || currentHour < 6) {
+            applyTheme('dark');
+        } else {
+            applyTheme('light');
+        }
 
         Object.keys(collectionConfigs).forEach(collectionName => {
             paginationState[collectionName] = {

@@ -428,6 +428,7 @@
     let currentEdit = { mode: null, collection: null, id: null };
     let statusChart;
     let paginationState = {};
+    let activeListeners = {}; // NEW: Object to track active listeners and prevent re-attachment
 
     const collectionConfigs = {
         Computers: { 
@@ -503,15 +504,17 @@
         const pageId = pageName.toLowerCase() + '-page';
         document.getElementById(pageId).style.display = 'block';
         
+        // The rendering functions now use the cached data in `allData`
+        // No new database reads are initiated here.
         if (pageName === 'Software') {
             buildSoftwareCards(allData.Software);
         } else if (pageName === 'LoanHistory') {
             buildLoanHistoryCards(allData.LoanHistory);
         } else if (collectionConfigs[pageName]) {
             const state = paginationState[pageName];
-            state.categoryFilter = filterValue; // Set category filter from submenu
-            state.filterText = ''; // Reset search text
-            state.currentPage = 1; // Reset to page 1
+            state.categoryFilter = filterValue; 
+            state.filterText = ''; 
+            state.currentPage = 1; 
 
             const searchInputId = `${pageName.toLowerCase()}SearchInput`;
             const searchInput = document.getElementById(searchInputId);
@@ -1023,9 +1026,18 @@
         });
     };
 
+    // --- MODIFIED: Caching logic ---
     function listenToCollection(collectionName, config) {
-        onSnapshot(collection(db, collectionName), (snapshot) => {
+        // Check if a listener is already active for this collection to prevent duplicates.
+        if (activeListeners[collectionName]) {
+            return; // If yes, do nothing. The cache is already being updated in real-time.
+        }
+
+        const listener = onSnapshot(collection(db, collectionName), (snapshot) => {
+            // Update the local cache (`allData`) with the latest data from Firestore.
             allData[collectionName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Re-render the currently visible page and the dashboard to reflect the changes.
             if (config.isInventory) {
                 if(document.getElementById(`${collectionName.toLowerCase()}-page`).style.display === 'block') {
                     buildTable(collectionName);
@@ -1044,10 +1056,17 @@
             console.error(`Error listening to ${collectionName}: `, error);
             let msg = `Error fetching data for ${collectionName}.`;
             if (error.code === 'permission-denied') msg = `Permission Denied. Check Firestore Rules.`;
-            if (config.isInventory) buildTable(collectionName, [], msg);
+            
+            if (config.isInventory) buildTable(collectionName, msg);
             else if (collectionName === 'LoanHistory') buildLoanHistoryCards([], msg);
             else if (collectionName === 'Software') buildSoftwareCards([], msg);
+
+            // If listener fails, remove it so it can be re-initialized on next attempt.
+            delete activeListeners[collectionName];
         });
+
+        // Store the listener's unsubscribe function to mark it as active.
+        activeListeners[collectionName] = listener;
     }
     
     function updateDashboard() {
@@ -1555,6 +1574,9 @@
             };
         });
 
+        // --- Caching Implementation ---
+        // These listeners are now set up only once per page session.
+        // They will populate the `allData` cache and keep it updated in real-time.
         listenToCollection('Computers', { isInventory: true });
         listenToCollection('Monitors', { isInventory: true });
         listenToCollection('Audio', { isInventory: true });
@@ -1562,6 +1584,7 @@
         listenToCollection('LoanHistory', { isInventory: false });
         listenToCollection('Location', { isInventory: false });
         listenToCollection('Accessory', { isInventory: true });
+        
         document.getElementById('loading-state').style.display = 'none';
         loadPage('Dashboard', document.getElementById('nav-dashboard'));
     });

@@ -390,9 +390,8 @@
     <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md flex flex-col items-center">
         <h3 class="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Label Preview</h3>
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Intended print size: 4cm x 1.5cm</p>
-        <div id="label-preview-area">
-            <!-- Scaled up 2x for better viewing. Original: 151px x 57px -->
-            <div class="border-2 border-black p-2 flex flex-col bg-white" style="width: 302px; height: 114px;">
+        <div id="label-preview-area" style="width: 302px; height: 114px;">
+            <div class="border-2 border-black p-2 flex flex-col bg-white h-full w-full">
                 <div class="text-center font-bold text-lg border-b-2 border-black pb-1">IT Asset</div>
                 <div class="flex items-center justify-between mt-2 flex-grow">
                     <canvas id="labelQrCanvas"></canvas>
@@ -1000,19 +999,19 @@
         const serialNumber = item[config.serialField] || 'unknown_sn';
         const labelElement = document.getElementById('label-preview-area');
 
-        // Temporarily apply a class to force light theme for capture
         const labelInner = labelElement.querySelector('div');
         labelInner.classList.add('force-light-theme');
 
         html2canvas(labelElement, { 
-            backgroundColor: null, // Use transparent background
-            scale: 3 // Increase scale for better resolution
+            backgroundColor: null,
+            scale: 3,
+            width: labelElement.offsetWidth,
+            height: labelElement.offsetHeight
         }).then(canvas => {
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/png');
             link.download = `label_${serialNumber}.png`;
             link.click();
-            // Remove the temporary class after capture
             labelInner.classList.remove('force-light-theme');
         });
     };

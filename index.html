@@ -367,8 +367,8 @@
         <h3 class="text-xl font-semibold mb-6">Export Data to CSV</h3>
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select categories to export:</label>
-                <div id="export-categories-container" class="grid grid-cols-2 gap-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select categories and types to export:</label>
+                <div id="export-categories-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto pr-2">
                     <!-- Checkboxes will be inserted here by JS -->
                 </div>
             </div>
@@ -1367,17 +1367,47 @@
     window.openExportModal = () => {
         const container = document.getElementById('export-categories-container');
         container.innerHTML = '';
-        // Also add LoanHistory to the export options
-        const exportableCollections = {...collectionConfigs, LoanHistory: {}};
-        Object.keys(exportableCollections).forEach(collectionName => {
-            container.innerHTML += `
-                <label class="flex items-center space-x-3">
-                    <input type="checkbox" name="export-category" value="${collectionName}" class="rounded text-indigo-600 focus:ring-indigo-500">
-                    <span class="text-gray-700 dark:text-gray-300">${collectionName}</span>
+        const exportableCollections = {...collectionConfigs, LoanHistory: { nameField: 'BorrowerName' }};
+        
+        container.innerHTML += `
+            <div class="col-span-full">
+                <label class="flex items-center space-x-3 font-semibold">
+                    <input type="checkbox" id="selectAllExport" onchange="toggleAllExportCheckboxes(this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500">
+                    <span>Select All / Deselect All</span>
                 </label>
-            `;
+            </div>
+            <div class="col-span-full border-t dark:border-gray-600"></div>
+        `;
+
+        Object.keys(exportableCollections).forEach(collectionName => {
+            const config = exportableCollections[collectionName];
+            
+            if (config.categoryFilterField && config.dropdowns && config.dropdowns[config.categoryFilterField]) {
+                const types = config.dropdowns[config.categoryFilterField];
+                types.forEach(type => {
+                    const value = `${collectionName}:${type}`;
+                    container.innerHTML += `
+                        <label class="flex items-center space-x-3">
+                            <input type="checkbox" name="export-category" value="${value}" class="rounded text-indigo-600 focus:ring-indigo-500 export-checkbox">
+                            <span class="text-gray-700 dark:text-gray-300">${collectionName} - ${type}</span>
+                        </label>
+                    `;
+                });
+            } else {
+                const value = collectionName;
+                container.innerHTML += `
+                    <label class="flex items-center space-x-3">
+                        <input type="checkbox" name="export-category" value="${value}" class="rounded text-indigo-600 focus:ring-indigo-500 export-checkbox">
+                        <span class="text-gray-700 dark:text-gray-300">${collectionName}</span>
+                    </label>
+                `;
+            }
         });
         document.getElementById('exportModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
+
+    window.toggleAllExportCheckboxes = (checked) => {
+        document.querySelectorAll('.export-checkbox').forEach(cb => cb.checked = checked);
     };
 
     window.exportToCsv = () => {
@@ -1387,74 +1417,75 @@
             return;
         }
 
-        const selectedCategories = Array.from(checkboxes).map(cb => cb.value);
-
-        // --- Create Summary ---
-        let summaryCsvContent = 'Category Status Summary\n';
-        const allStatuses = ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'];
-        summaryCsvContent += 'Category / Type,Total,' + allStatuses.join(',') + '\n';
-
-        selectedCategories.forEach(cat => {
-            if (cat === 'LoanHistory') return; 
-
-            const categoryData = allData[cat] || [];
-            const config = collectionConfigs[cat];
-            
-            // Check if the category has subtypes (like Computers -> Type, Accessory -> AccessoryType)
-            if (config && config.categoryFilterField && config.dropdowns && config.dropdowns[config.categoryFilterField]) {
-                const types = config.dropdowns[config.categoryFilterField];
-                types.forEach(type => {
-                    const typeData = categoryData.filter(item => item[config.categoryFilterField] === type);
-                    if (typeData.length > 0) { // Only show types that have items
-                        const counts = { Total: typeData.length };
-                        allStatuses.forEach(status => {
-                            counts[status] = typeData.filter(item => item.Status === status).length;
-                        });
-                        const rowName = `${cat} - ${type}`;
-                        const row = [rowName, counts.Total, ...allStatuses.map(status => counts[status] || 0)].join(',');
-                        summaryCsvContent += row + '\n';
-                    }
-                });
-            } else {
-                // For categories without subtypes (Monitors, Audio)
-                const counts = { Total: categoryData.length };
-                allStatuses.forEach(status => {
-                    counts[status] = categoryData.filter(item => item.Status === status).length;
-                });
-                const row = [cat, counts.Total, ...allStatuses.map(status => counts[status] || 0)].join(',');
-                summaryCsvContent += row + '\n';
-            }
-        });
-
-        summaryCsvContent += '\n\nRaw Data\n'; // Add spacing before raw data
-
-        // --- Aggregate Raw Data ---
+        const selectedItems = Array.from(checkboxes).map(cb => cb.value);
+        
         let dataToExport = [];
-        selectedCategories.forEach(cat => {
-            const categoryData = allData[cat] || [];
-            const dataWithCategory = categoryData.map(item => {
+        let summaryData = {};
+
+        selectedItems.forEach(itemValue => {
+            const parts = itemValue.split(':');
+            const collectionName = parts[0];
+            const subType = parts.length > 1 ? parts[1] : null;
+            
+            const categoryData = allData[collectionName] || [];
+            const config = collectionConfigs[collectionName];
+            
+            let filteredData = [];
+            let exportCategoryLabel = collectionName;
+
+            if (subType && config) {
+                filteredData = categoryData.filter(item => item[config.categoryFilterField] === subType);
+                exportCategoryLabel = `${collectionName} - ${subType}`;
+            } else {
+                filteredData = categoryData;
+            }
+
+            const dataWithCategory = filteredData.map(item => {
                 const cleanItem = {...item};
-                // Convert Firestore Timestamps to readable dates
                 Object.keys(cleanItem).forEach(key => {
                     if (cleanItem[key] && typeof cleanItem[key].toDate === 'function') {
                         cleanItem[key] = cleanItem[key].toDate().toLocaleString('th-TH');
                     }
                 });
-                return { Category: cat, ...cleanItem };
+                return { Category: exportCategoryLabel, ...cleanItem };
             });
             dataToExport.push(...dataWithCategory);
+            
+            if (collectionName !== 'LoanHistory') {
+                 summaryData[exportCategoryLabel] = filteredData;
+            }
         });
 
-        if (dataToExport.length === 0 && summaryCsvContent.split('\n').length <= 4) { // 4 lines = 2 headers + 2 newlines
+        if (dataToExport.length === 0) {
             showNotificationModal('warning', 'No Data', 'No data available for the selected categories.');
             return;
         }
+
+        // --- Create Summary CSV ---
+        let summaryCsvContent = 'Category Status Summary\n';
+        const allStatuses = ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'];
+        summaryCsvContent += 'Category / Type,Total,' + allStatuses.join(',') + '\n';
+
+        Object.keys(summaryData).sort().forEach(label => {
+            const data = summaryData[label];
+            const counts = { Total: data.length };
+            allStatuses.forEach(status => {
+                counts[status] = data.filter(item => item.Status === status).length;
+            });
+            const row = [label, counts.Total, ...allStatuses.map(status => counts[status] || 0)].join(',');
+            summaryCsvContent += row + '\n';
+        });
+        
+        summaryCsvContent += '\n\nRaw Data\n';
 
         // --- Create Raw Data CSV ---
         const headers = [...new Set(dataToExport.flatMap(obj => Object.keys(obj)))];
         const sanitizeCell = (cell) => {
             if (cell === null || cell === undefined) return '';
             let cellStr = String(cell);
+            if (Array.isArray(cell)) {
+                cellStr = cell.join('; '); // Join array elements
+            }
             if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
                 cellStr = cellStr.replace(/"/g, '""');
                 return `"${cellStr}"`;

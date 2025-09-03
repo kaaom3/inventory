@@ -376,7 +376,7 @@
         <form id="editForm" class="space-y-6 max-h-[60vh] overflow-y-auto pr-4"></form>
         <div class="mt-6 flex justify-end space-x-4">
             <button type="button" onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
-            <button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
+            <button type="button" onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
         </div>
     </div>
   </div>
@@ -680,7 +680,7 @@
                         const diffTime = now.getTime() - statusDate.getTime();
                         const diffDays = Math.floor(diffTime / (1000 * 3600 * 24));
 
-                        let daysText = (diffDays < 1) ? '(Today)' : `(${diffDays} days ago)`;
+                        let daysText = (diffDays < 1) ? '(Today)' : (diffDays === 1 ? '(1 day ago)' : `(${diffDays} days ago)`);
                         
                         let statusColorClass = 'text-green-600 dark:text-green-400';
                         if (diffDays > 7 && diffDays <= 30) statusColorClass = 'text-yellow-500 dark:text-yellow-400';
@@ -1154,6 +1154,138 @@
         activeListeners[collectionName] = listener;
     }
     
+    // --- START: User Management Functions ---
+
+    async function callAdminFunction(functionName, body) {
+        try {
+            const token = await auth.currentUser.getIdToken(true);
+            const functionUrl = `https://us-central1-inventory-eedef.cloudfunctions.net/${functionName}`;
+            
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'An error occurred.');
+            }
+            return await response.json();
+
+        } catch (error) {
+            console.error(`Error calling ${functionName}:`, error);
+            showNotificationModal('warning', 'Error', error.message);
+            throw error;
+        }
+    }
+
+    async function buildUserManagementPage() {
+        const page = document.getElementById('usermanagement-page');
+        page.innerHTML = `
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">User Management</h2>
+                <button onclick="openAddUserModal()" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
+                    <i class="fas fa-plus mr-2"></i>Add New User
+                </button>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">User ID (UID)</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Date Created</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-list-tbody" class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr><td colspan="4" class="text-center p-6 text-gray-500">Loading users...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+        
+        try {
+            const { users } = await callAdminFunction('listUsers');
+            renderUsersTable(users);
+        } catch (error) {
+            document.getElementById('user-list-tbody').innerHTML = `<tr><td colspan="4" class="text-center p-6 text-red-500">Failed to load users. See console for details.</td></tr>`;
+        }
+    }
+    
+    function renderUsersTable(users) {
+        const tbody = document.getElementById('user-list-tbody');
+        tbody.innerHTML = '';
+        if (!users || users.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center p-6 text-gray-500">No users found.</td></tr>`;
+            return;
+        }
+
+        const currentUser = auth.currentUser;
+
+        users.forEach(user => {
+            const dateCreated = new Date(user.metadata.creationTime).toLocaleDateString();
+            const isCurrentUser = currentUser && user.uid === currentUser.uid;
+
+            let deleteButton = `<button onclick="handleDeleteUser('${user.uid}', '${user.email}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Delete User"><i class="fas fa-trash"></i></button>`;
+            if (isCurrentUser) {
+                deleteButton = `<button class="text-gray-400 cursor-not-allowed" title="You cannot delete yourself." disabled><i class="fas fa-trash"></i></button>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">${user.email}</td>
+                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">${user.uid}</td>
+                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">${dateCreated}</td>
+                <td class="px-6 py-4 text-sm font-medium">${deleteButton}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    
+    window.openAddUserModal = () => {
+        const form = document.getElementById('addUserForm');
+        form.reset();
+        document.getElementById('addUserError').textContent = '';
+        document.getElementById('addUserModal').classList.remove('opacity-0', 'pointer-events-none');
+    };
+    
+    document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('newUserEmail').value;
+        const password = document.getElementById('newUserPassword').value;
+        const errorDiv = document.getElementById('addUserError');
+        errorDiv.textContent = '';
+        
+        try {
+            await callAdminFunction('createUser', { email, password });
+            hideModal('addUserModal');
+            showNotificationModal('success', 'User Created', `Successfully created user ${email}.`);
+            buildUserManagementPage(); // Refresh the user list
+        } catch (error) {
+            errorDiv.textContent = error.message;
+        }
+    });
+
+    window.handleDeleteUser = async (uid, email) => {
+        if (confirm(`Are you sure you want to delete the user "${email}"? This action cannot be undone.`)) {
+            try {
+                await callAdminFunction('deleteUser', { uid });
+                showNotificationModal('success', 'User Deleted', `Successfully deleted user ${email}.`);
+                buildUserManagementPage(); // Refresh the user list
+            } catch(error) {
+                // Error is already shown by callAdminFunction
+            }
+        }
+    };
+
+    // --- END: User Management Functions ---
+    
     function updateDashboard() {
         const computers = allData['Computers'] || [];
         const monitors = allData['Monitors'] || [];
@@ -1397,7 +1529,7 @@
                     <span>Select All / Deselect All</span>
                 </label>
             </div>
-            <div class="col-span-full border-t dark:border-gray-600"></div>`;
+            <div class="col-span-full border-t dark:border-gray-600 my-2"></div>`;
 
         Object.keys(exportableCollections).forEach(collectionName => {
             const config = exportableCollections[collectionName];
@@ -1563,6 +1695,7 @@
             statusChart.update();
         }
     }
+    
   </script>
 </body>
 </html>

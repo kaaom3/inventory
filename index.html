@@ -465,7 +465,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc, writeBatch, serverTimestamp, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew", authDomain: "inventory-eedef.firebaseapp.com", projectId: "inventory-eedef", storageBucket: "inventory-eedef.appspot.com", messagingSenderId: "1089383656081", appId: "1:1089383656081:web:bb8e8237a701f356102d30" };
@@ -1242,7 +1242,10 @@
                 <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">${user.email}</td>
                 <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">${user.uid}</td>
                 <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">${dateCreated}</td>
-                <td class="px-6 py-4 text-sm font-medium">${deleteButton}</td>
+                <td class="px-6 py-4 text-sm font-medium space-x-4">
+                    <button onclick="handleResetPassword('${user.email}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" title="Send Password Reset Email"><i class="fas fa-key"></i></button>
+                    ${deleteButton}
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -1280,6 +1283,18 @@
                 buildUserManagementPage(); // Refresh the user list
             } catch(error) {
                 // Error is already shown by callAdminFunction
+            }
+        }
+    };
+
+    window.handleResetPassword = async (email) => {
+        if (confirm(`Are you sure you want to send a password reset email to "${email}"?`)) {
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showNotificationModal('success', 'Email Sent', `A password reset email has been sent to ${email}.`);
+            } catch (error) {
+                console.error("Error sending password reset email:", error);
+                showNotificationModal('warning', 'Error', `Could not send password reset email. Error: ${error.message}`);
             }
         }
     };
@@ -1695,7 +1710,6 @@
             statusChart.update();
         }
     }
-    
   </script>
 </body>
 </html>

@@ -478,6 +478,7 @@
     let statusChart;
     let paginationState = {};
     let activeListeners = {}; 
+    let idleTimer = null; // Timer for auto-logout
 
     const collectionConfigs = {
         Computers: { 
@@ -529,13 +530,11 @@
     // --- Authentication and App Initialization ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // User is signed in. Show the app and start the logic.
             document.getElementById('auth-loading').style.display = 'none';
             document.getElementById('app-container').classList.remove('hidden');
             document.getElementById('userInfo').textContent = `Logged in as: ${user.email}`;
             initializeAppLogic();
         } else {
-            // User is signed out. Redirect to login page.
             window.location.replace('login.html');
         }
     });
@@ -567,13 +566,42 @@
         
         document.getElementById('loading-state').style.display = 'none';
         loadPage('Dashboard', document.getElementById('nav-dashboard'));
+
+        setupIdleTimer(); // Start the auto-logout timer
     }
     
     window.logout = () => {
+        clearTimeout(idleTimer); // Stop the timer on manual logout
         signOut(auth).catch((error) => {
             console.error('Sign out error', error);
         });
     };
+    
+    // --- START: Idle Timer for Auto-Logout ---
+    function setupIdleTimer() {
+        const twentyMinutes = 20 * 60 * 1000;
+        
+        const performLogout = () => {
+            showNotificationModal('info', 'Session Expired', 'You have been logged out due to inactivity.');
+            clearTimeout(idleTimer);
+            setTimeout(logout, 3000); // Wait 3 seconds for user to see message
+        };
+
+        const resetTimer = () => {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(performLogout, twentyMinutes);
+        };
+
+        // Events that indicate user activity
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('mousedown', resetTimer);
+        window.addEventListener('keypress', resetTimer);
+        window.addEventListener('touchmove', resetTimer);
+        window.addEventListener('scroll', resetTimer, true); 
+
+        resetTimer(); // Initial call to start the timer
+    }
+    // --- END: Idle Timer for Auto-Logout ---
 
 
     // --- Mobile Navigation ---
@@ -719,58 +747,6 @@
         table.appendChild(tbody);
         renderPaginationControls(collectionName, totalRows);
     }
-    
-    window.renderPaginationControls = function(collectionName, totalRows) {
-        const container = document.getElementById(collectionName + 'Pagination');
-        if (!container) return;
-
-        const state = paginationState[collectionName];
-        const totalPages = Math.ceil(totalRows / state.rowsPerPage);
-        const startItem = totalRows > 0 ? (state.currentPage - 1) * state.rowsPerPage + 1 : 0;
-        const endItem = Math.min(startItem + state.rowsPerPage - 1, totalRows);
-
-        container.innerHTML = `
-            <div class="text-sm text-gray-700 dark:text-gray-300">
-                Showing <span class="font-semibold">${startItem}</span> to <span class="font-semibold">${endItem}</span> of <span class="font-semibold">${totalRows}</span> results
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                    <label for="${collectionName}RowsPerPage" class="text-sm font-medium">Rows per page:</label>
-                    <select id="${collectionName}RowsPerPage" onchange="changeRowsPerPage('${collectionName}', this)" class="rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="10" ${state.rowsPerPage == 10 ? 'selected' : ''}>10</option>
-                        <option value="25" ${state.rowsPerPage == 25 ? 'selected' : ''}>25</option>
-                        <option value="50" ${state.rowsPerPage == 50 ? 'selected' : ''}>50</option>
-                    </select>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="changePage('${collectionName}', -1)" ${state.currentPage === 1 ? 'disabled' : ''} class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-700 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"><i class="fas fa-chevron-left text-xs"></i></button>
-                    <span class="text-sm font-medium">Page ${state.currentPage} of ${totalPages > 0 ? totalPages : 1}</span>
-                    <button onclick="changePage('${collectionName}', 1)" ${state.currentPage >= totalPages ? 'disabled' : ''} class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-700 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"><i class="fas fa-chevron-right text-xs"></i></button>
-                </div>
-            </div>
-        `;
-    }
-
-    window.changePage = (collectionName, direction) => {
-        const state = paginationState[collectionName];
-        const newPage = state.currentPage + direction;
-        state.currentPage = newPage;
-        buildTable(collectionName);
-    };
-
-    window.changeRowsPerPage = (collectionName, selectElement) => {
-        const state = paginationState[collectionName];
-        state.rowsPerPage = parseInt(selectElement.value, 10);
-        state.currentPage = 1; // Reset to first page
-        buildTable(collectionName);
-    };
-
-    window.handleSearch = (collectionName, filterText) => {
-        const state = paginationState[collectionName];
-        state.filterText = filterText;
-        state.currentPage = 1; // Reset to page 1 on new search
-        buildTable(collectionName);
-    };
 
     function buildLoanHistoryCards(data, errorMessage = null) {
         const container = document.getElementById('LoanHistoryContainer');

@@ -747,6 +747,58 @@
         table.appendChild(tbody);
         renderPaginationControls(collectionName, totalRows);
     }
+    
+    window.renderPaginationControls = function(collectionName, totalRows) {
+        const container = document.getElementById(collectionName + 'Pagination');
+        if (!container) return;
+
+        const state = paginationState[collectionName];
+        const totalPages = Math.ceil(totalRows / state.rowsPerPage);
+        const startItem = totalRows > 0 ? (state.currentPage - 1) * state.rowsPerPage + 1 : 0;
+        const endItem = Math.min(startItem + state.rowsPerPage - 1, totalRows);
+
+        container.innerHTML = `
+            <div class="text-sm text-gray-700 dark:text-gray-300">
+                Showing <span class="font-semibold">${startItem}</span> to <span class="font-semibold">${endItem}</span> of <span class="font-semibold">${totalRows}</span> results
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <label for="${collectionName}RowsPerPage" class="text-sm font-medium">Rows per page:</label>
+                    <select id="${collectionName}RowsPerPage" onchange="changeRowsPerPage('${collectionName}', this)" class="rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="10" ${state.rowsPerPage == 10 ? 'selected' : ''}>10</option>
+                        <option value="25" ${state.rowsPerPage == 25 ? 'selected' : ''}>25</option>
+                        <option value="50" ${state.rowsPerPage == 50 ? 'selected' : ''}>50</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="changePage('${collectionName}', -1)" ${state.currentPage === 1 ? 'disabled' : ''} class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-700 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"><i class="fas fa-chevron-left text-xs"></i></button>
+                    <span class="text-sm font-medium">Page ${state.currentPage} of ${totalPages > 0 ? totalPages : 1}</span>
+                    <button onclick="changePage('${collectionName}', 1)" ${state.currentPage >= totalPages ? 'disabled' : ''} class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-700 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"><i class="fas fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+        `;
+    }
+
+    window.changePage = (collectionName, direction) => {
+        const state = paginationState[collectionName];
+        const newPage = state.currentPage + direction;
+        state.currentPage = newPage;
+        buildTable(collectionName);
+    };
+
+    window.changeRowsPerPage = (collectionName, selectElement) => {
+        const state = paginationState[collectionName];
+        state.rowsPerPage = parseInt(selectElement.value, 10);
+        state.currentPage = 1; // Reset to first page
+        buildTable(collectionName);
+    };
+
+    window.handleSearch = (collectionName, filterText) => {
+        const state = paginationState[collectionName];
+        state.filterText = filterText;
+        state.currentPage = 1; // Reset to page 1 on new search
+        buildTable(collectionName);
+    };
 
     function buildLoanHistoryCards(data, errorMessage = null) {
         const container = document.getElementById('LoanHistoryContainer');
@@ -1062,8 +1114,7 @@
 
         const canvas = document.getElementById('labelQrCanvas');
         const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-        // Scaled up 2x for the larger preview. Original width: 45
-        QRCode.toCanvas(canvas, url, { width: 90, margin: 1, errorCorrectionLevel: 'H' });
+        QRCode.toCanvas(canvas, url, { width: 70, margin: 1, errorCorrectionLevel: 'H' });
         
         const downloadBtn = document.getElementById('downloadLabelButton');
         downloadBtn.onclick = () => downloadLabelAsImage(item, config);

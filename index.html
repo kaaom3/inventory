@@ -1,6 +1,726 @@
-function renderPaginationControls
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Inventory Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF & html2canvas Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .page-content { display: none; }
+    .nav-link.active { background-color: #4f46e5; color: white; font-weight: 600; }
+    .dark .nav-link.active { background-color: #6366f1; }
+    .nav-link:not(.active):hover, .nav-link-sub:hover { background-color: #f3f4f6; color: #1f2937; }
+    .dark .nav-link:not(.active):hover, .dark .nav-link-sub:hover { background-color: #374151; color: #f9fafb; }
+    .nav-link-sub.active { color: #4f46e5; font-weight: 600; }
+    .dark .nav-link-sub.active { color: #a5b4fc; }
+    .modal { transition: opacity 0.3s ease; }
+    .modal-content { transition: all 0.3s ease; }
+    .modal.opacity-0 .modal-content { transform: scale(0.95); }
+    #sidebar { transition: transform 0.3s ease-in-out; }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    .table-fixed { table-layout: fixed; width: 100%; }
+    .force-light-theme { background-color: white !important; color: black !important; }
+    .force-light-theme * { color: black !important; border-color: black !important; }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
-    function renderPaginationControls(collectionName, totalRows) {
+  <div id="auth-loading" class="flex items-center justify-center h-screen">
+      <p class="text-gray-500 dark:text-gray-400 text-lg">Authenticating...</p>
+  </div>
+
+  <div id="app-container" class="hidden">
+    <div class="relative min-h-screen md:flex">
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden flex justify-between items-center bg-white dark:bg-gray-800 p-4 border-b dark:border-gray-700">
+          <div class="flex items-center space-x-3">
+              <i class="fas fa-cubes text-2xl text-indigo-600"></i>
+              <h1 class="text-xl font-bold text-gray-800 dark:text-white">Inventory</h1>
+          </div>
+          <button id="mobile-menu-button" class="text-gray-500 dark:text-gray-400 focus:outline-none">
+              <i class="fas fa-bars text-2xl"></i>
+          </button>
+      </div>
+
+      <!-- Sidebar Navigation -->
+      <nav id="sidebar" class="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-5 flex flex-col flex-shrink-0 fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 z-30">
+          <div class="flex items-center justify-between mb-10">
+              <div class="flex items-center space-x-3">
+                  <i class="fas fa-cubes text-2xl text-indigo-600"></i>
+                  <h1 class="text-xl font-bold text-gray-800 dark:text-white">Inventory</h1>
+              </div>
+          </div>
+          <ul class="space-y-2">
+              <li><a href="#" id="nav-dashboard" onclick="loadPage('Dashboard', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-tachometer-alt w-5 text-center"></i><span>Dashboard</span></a></li>
+              <li>
+                  <details class="group">
+                      <summary class="nav-link flex items-center justify-between px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 cursor-pointer">
+                          <div class="flex items-center space-x-3">
+                              <i class="fas fa-laptop w-5 text-center"></i>
+                              <span>Computers</span>
+                          </div>
+                          <i class="fas fa-chevron-right text-xs transform group-open:rotate-90 transition-transform"></i>
+                      </summary>
+                      <ul class="pl-8 pt-2 space-y-1">
+                          <li><a href="#" onclick="loadPage('Computers', this, 'Desktop'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Desktop</a></li>
+                          <li><a href="#" onclick="loadPage('Computers', this, 'Laptop'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Laptop</a></li>
+                          <li><a href="#" onclick="loadPage('Computers', this, 'MacBook'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">MacBook</a></li>
+                          <li><a href="#" onclick="loadPage('Computers', this, 'Tablet'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Tablet</a></li>
+                          <li><a href="#" onclick="loadPage('Computers', this, 'POS'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">POS</a></li>
+                          <li><a href="#" onclick="loadPage('Computers', this, null); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">All</a></li>
+                      </ul>
+                  </details>
+              </li>
+              <li><a href="#" id="nav-monitors" onclick="loadPage('Monitors', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-desktop w-5 text-center"></i><span>Monitors</span></a></li>
+              <li><a href="#" id="nav-audio" onclick="loadPage('Audio', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-volume-up w-5 text-center"></i><span>Audio</span></a></li>
+              <li>
+                  <details class="group">
+                      <summary class="nav-link flex items-center justify-between px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 cursor-pointer">
+                          <div class="flex items-center space-x-3">
+                              <i class="fas fa-keyboard w-5 text-center"></i>
+                              <span>Accessory</span>
+                          </div>
+                          <i class="fas fa-chevron-right text-xs transform group-open:rotate-90 transition-transform"></i>
+                      </summary>
+                      <ul class="pl-8 pt-2 space-y-1">
+                          <li><a href="#" onclick="loadPage('Accessory', this, 'Mouse'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Mouse</a></li>
+                          <li><a href="#" onclick="loadPage('Accessory', this, 'Keyboard'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Keyboard</a></li>
+                          <li><a href="#" onclick="loadPage('Accessory', this, 'Webcam'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">Webcam</a></li>
+                          <li><a href="#" onclick="loadPage('Accessory', this, 'UPS'); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">UPS</a></li>
+                          <li><a href="#" onclick="loadPage('Accessory', this, null); return false;" class="nav-link-sub block px-4 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400">All</a></li>
+                      </ul>
+                  </details>
+              </li>
+              <li><a href="#" id="nav-software" onclick="loadPage('Software', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-cogs w-5 text-center"></i><span>Software</span></a></li>
+              <li class="pt-4"><div class="px-4 text-xs font-semibold uppercase text-gray-400">Management</div></li>
+              <li><a href="loan.html" target="_blank" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-external-link-alt w-5 text-center"></i><span>หน้ายืม-คืน (User)</span></a></li>
+              <li><a href="#" id="nav-loanhistory" onclick="loadPage('LoanHistory', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-history w-5 text-center"></i><span>ประวัติการยืม</span></a></li>
+              <li><a href="#" id="nav-usermanagement" onclick="loadPage('UserManagement', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-300"><i class="fas fa-users-cog w-5 text-center"></i><span>User Management</span></a></li>
+          </ul>
+          <div class="mt-auto">
+              <div id="userInfo" class="text-xs text-center text-gray-500 dark:text-gray-400 mb-2"></div>
+              <a href="#" onclick="logout(); return false;" class="nav-link flex items-center space-x-3 px-4 py-2.5 rounded-lg text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/50">
+                  <i class="fas fa-sign-out-alt w-5 text-center"></i>
+                  <span>Logout</span>
+              </a>
+          </div>
+      </nav>
+      
+      <!-- Overlay for mobile menu -->
+      <div id="sidebar-overlay" class="hidden md:hidden fixed inset-0 bg-black opacity-50 z-20"></div>
+
+      <!-- Main Content Area -->
+      <main id="main-content" class="flex-1 p-4 md:p-10 overflow-y-auto">
+        <div id="loading-state" class="text-center py-12">Connecting to database...</div>
+
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="page-content">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 md:mb-0">Dashboard</h2>
+              <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                   <button onclick="exportAllQrToPdf()" class="w-full sm:w-auto bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">
+                      <i class="fas fa-file-pdf mr-2"></i>Export All QR
+                  </button>
+                  <button onclick="exportNewQrToPdf()" class="w-full sm:w-auto bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                      <i class="fas fa-file-pdf mr-2"></i>Export New QR
+                  </button>
+                  <button onclick="openExportModal()" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                      <i class="fas fa-file-excel mr-2"></i>Export Report
+                  </button>
+              </div>
+          </div>
+          
+          <!-- Overall Summary -->
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                  <div class="bg-blue-100 dark:bg-blue-900/50 p-4 rounded-full"><i class="fas fa-hdd text-2xl text-blue-500"></i></div>
+                  <div><p class="text-sm text-gray-500 dark:text-gray-400">Total Devices</p><p id="stat-total-devices" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+              </div>
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                  <div class="bg-yellow-100 dark:bg-yellow-900/50 p-4 rounded-full"><i class="fas fa-user-clock text-2xl text-yellow-500"></i></div>
+                  <div><p class="text-sm text-gray-500 dark:text-gray-400">On Loan</p><p id="stat-total-onloan" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+              </div>
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                  <div class="bg-orange-100 dark:bg-orange-900/50 p-4 rounded-full"><i class="fas fa-tools text-2xl text-orange-500"></i></div>
+                  <div><p class="text-sm text-gray-500 dark:text-gray-400">In Repair</p><p id="stat-total-repair" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+              </div>
+               <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                  <div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-full"><i class="fas fa-box-open text-2xl text-gray-500"></i></div>
+                  <div><p class="text-sm text-gray-500 dark:text-gray-400">In Storage</p><p id="stat-total-storage" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+              </div>
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                  <div class="bg-pink-100 dark:bg-pink-900/50 p-4 rounded-full"><i class="fas fa-heart-broken text-2xl text-pink-500"></i></div>
+                  <div><p class="text-sm text-gray-500 dark:text-gray-400">Damaged</p><p id="stat-total-damaged" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+              </div>
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                  <div class="bg-red-100 dark:bg-red-900/50 p-4 rounded-full"><i class="fas fa-trash-alt text-2xl text-red-500"></i></div>
+                  <div><p class="text-sm text-gray-500 dark:text-gray-400">Disposed</p><p id="stat-total-disposed" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+              </div>
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm flex items-center space-x-4 col-span-1 md:col-span-2">
+                  <div class="bg-red-100 dark:bg-red-900/50 p-4 rounded-full"><i class="fas fa-exclamation-triangle text-2xl text-red-500"></i></div>
+                  <div><p class="text-sm text-gray-500 dark:text-gray-400">Warranty Ending Soon (30 days)</p><p id="stat-total-warranty-ending" class="text-3xl font-bold text-gray-900 dark:text-white">0</p></div>
+              </div>
+          </div>
+
+          <!-- KPI Cards by Category -->
+          <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Category Overview</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+              <!-- Computers -->
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                  <details class="group">
+                      <summary class="flex items-center justify-between cursor-pointer">
+                          <div class="flex items-center space-x-4">
+                              <div class="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full"><i class="fas fa-laptop text-2xl text-indigo-500"></i></div>
+                              <div>
+                                  <p class="text-sm text-gray-500 dark:text-gray-400">Total Computers</p>
+                                  <p id="cat-total-computers" class="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                              </div>
+                          </div>
+                          <i class="fas fa-chevron-down text-gray-400 transform group-open:rotate-180 transition-transform"></i>
+                      </summary>
+                      <div id="computer-type-breakdown" class="mt-4 pt-4 border-t dark:border-gray-700 space-y-4">
+                          <!-- Breakdown will be injected here by JS -->
+                      </div>
+                  </details>
+              </div>
+              <!-- Monitors -->
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                  <details class="group">
+                      <summary class="flex items-center justify-between cursor-pointer">
+                          <div class="flex items-center space-x-4">
+                              <div class="bg-green-100 dark:bg-green-900/50 p-3 rounded-full"><i class="fas fa-desktop text-2xl text-green-500"></i></div>
+                              <div>
+                                  <p class="text-sm text-gray-500 dark:text-gray-400">Total Monitors</p>
+                                  <p id="cat-total-monitors" class="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                              </div>
+                          </div>
+                          <i class="fas fa-chevron-down text-gray-400 transform group-open:rotate-180 transition-transform"></i>
+                      </summary>
+                      <div class="space-y-2 text-sm pt-4 border-t dark:border-gray-700 mt-4">
+                          <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-monitors-active" class="font-medium text-green-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-monitors-on-loan" class="font-medium text-yellow-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-monitors-repair" class="font-medium text-orange-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-monitors-storage" class="font-medium text-gray-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-monitors-damaged" class="font-medium text-pink-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-monitors-disposed" class="font-medium text-red-500">0</span></div>
+                      </div>
+                  </details>
+              </div>
+              <!-- Audio -->
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                  <details class="group">
+                      <summary class="flex items-center justify-between cursor-pointer">
+                          <div class="flex items-center space-x-4">
+                              <div class="bg-red-100 dark:bg-red-900/50 p-3 rounded-full"><i class="fas fa-volume-up text-2xl text-red-500"></i></div>
+                              <div>
+                                  <p class="text-sm text-gray-500 dark:text-gray-400">Total Audio</p>
+                                  <p id="cat-total-audio" class="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                              </div>
+                          </div>
+                          <i class="fas fa-chevron-down text-gray-400 transform group-open:rotate-180 transition-transform"></i>
+                      </summary>
+                      <div class="space-y-2 text-sm pt-4 border-t dark:border-gray-700 mt-4">
+                          <div class="flex justify-between"><span class="text-green-500">Active:</span><span id="cat-audio-active" class="font-medium text-green-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span id="cat-audio-on-loan" class="font-medium text-yellow-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span id="cat-audio-repair" class="font-medium text-orange-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span id="cat-audio-storage" class="font-medium text-gray-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span id="cat-audio-damaged" class="font-medium text-pink-500">0</span></div>
+                          <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span id="cat-audio-disposed" class="font-medium text-red-500">0</span></div>
+                      </div>
+                  </details>
+              </div>
+              <!-- Accessories -->
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                  <details class="group">
+                      <summary class="flex items-center justify-between cursor-pointer">
+                          <div class="flex items-center space-x-4">
+                              <div class="bg-purple-100 dark:bg-purple-900/50 p-3 rounded-full"><i class="fas fa-keyboard text-2xl text-purple-500"></i></div>
+                              <div>
+                                  <p class="text-sm text-gray-500 dark:text-gray-400">Total Accessories</p>
+                                  <p id="cat-total-accessories" class="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                              </div>
+                          </div>
+                          <i class="fas fa-chevron-down text-gray-400 transform group-open:rotate-180 transition-transform"></i>
+                      </summary>
+                      <div id="accessory-type-breakdown" class="mt-4 pt-4 border-t dark:border-gray-700 space-y-4">
+                          <!-- Breakdown will be injected here by JS -->
+                      </div>
+                  </details>
+              </div>
+          </div>
+          
+          <!-- Charts and Activities -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                  <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Device Status Distribution</h3>
+                  <canvas id="statusChart"></canvas>
+              </div>
+              <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                   <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Recent Activities</h3>
+                   <div class="overflow-x-auto">
+                      <table class="min-w-full">
+                          <thead class="bg-gray-50 dark:bg-gray-700">
+                              <tr>
+                                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Device</th>
+                                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Activity</th>
+                                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">User</th>
+                                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Date</th>
+                              </tr>
+                          </thead>
+                          <tbody id="recent-activities-table" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                      </table>
+                   </div>
+              </div>
+          </div>
+
+          <!-- Upcoming Return Deadlines -->
+          <div class="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+              <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Upcoming Return Deadlines (Next 2 Days)</h3>
+              <div class="overflow-x-auto">
+                  <table class="min-w-full">
+                      <thead class="bg-gray-50 dark:bg-gray-700">
+                          <tr>
+                              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Borrower</th>
+                              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Device</th>
+                              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Return Date</th>
+                              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Time Left</th>
+                          </tr>
+                      </thead>
+                      <tbody id="due-soon-table" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                  </table>
+              </div>
+          </div>
+
+          <!-- Warranty Watchlist -->
+          <div class="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+              <h3 class="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Warranty Watchlist (Ending in 30 days)</h3>
+              <div class="overflow-x-auto">
+                  <table class="min-w-full">
+                      <thead class="bg-gray-50 dark:bg-gray-700">
+                          <tr>
+                              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Device Name</th>
+                              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Serial Number</th>
+                              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Category</th>
+                              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Expires On</th>
+                              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Days Left</th>
+                          </tr>
+                      </thead>
+                      <tbody id="warranty-watchlist-table" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                  </table>
+              </div>
+          </div>
+        </div>
+
+        <!-- Inventory Pages -->
+        <div id="computers-page" class="page-content">
+          <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Computer Inventory</h2><button onclick="openModal('add', 'Computers')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
+          <div class="mb-4"><input type="text" id="computersSearchInput" onkeyup="handleSearch('Computers', this.value)" placeholder="Search computers..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="ComputersTable" class="min-w-full table-fixed"></table></div></div>
+          <div id="ComputersPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
+        </div>
+        <div id="monitors-page" class="page-content">
+          <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Monitor Inventory</h2><button onclick="openModal('add', 'Monitors')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
+          <div class="mb-4"><input type="text" id="monitorsSearchInput" onkeyup="handleSearch('Monitors', this.value)" placeholder="Search monitors..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="MonitorsTable" class="min-w-full table-fixed"></table></div></div>
+          <div id="MonitorsPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
+        </div>
+        <div id="audio-page" class="page-content">
+          <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Audio Inventory</h2><button onclick="openModal('add', 'Audio')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
+          <div class="mb-4"><input type="text" id="audioSearchInput" onkeyup="handleSearch('Audio', this.value)" placeholder="Search audio..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AudioTable" class="min-w-full table-fixed"></table></div></div>
+          <div id="AudioPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
+        </div>
+        <div id="accessory-page" class="page-content">
+          <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Accessory Inventory</h2><button onclick="openModal('add', 'Accessory')" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700"><i class="fas fa-plus mr-2"></i>Add New</button></div>
+          <div class="mb-4"><input type="text" id="accessorySearchInput" onkeyup="handleSearch('Accessory', this.value)" placeholder="Search accessories..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"><div class="overflow-x-auto"><table id="AccessoryTable" class="min-w-full table-fixed"></table></div></div>
+          <div id="AccessoryPagination" class="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-300"></div>
+        </div>
+        
+        <!-- Software Page -->
+        <div id="software-page" class="page-content">
+          <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Software Inventory</h2></div>
+          <div class="mb-4"><input type="text" id="softwareSearchInput" onkeyup="filterSoftwareCards(this.value)" placeholder="Search by computer or software..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+          <div id="SoftwareContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- Loan History Page -->
+         <div id="loanhistory-page" class="page-content">
+          <div class="flex justify-between items-center mb-6"><h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">ประวัติการยืม-คืน</h2></div>
+          <div class="mb-4"><input type="text" id="loanHistorySearchInput" onkeyup="filterLoanHistory(this.value)" placeholder="Search by borrower, serial, etc..." class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"></div>
+          <div id="LoanHistoryContainer" class="space-y-3"></div>
+        </div>
+        
+        <!-- User Management Page -->
+        <div id="usermanagement-page" class="page-content">
+            <!-- Content will be built by JS -->
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- All Modals go here -->
+  <div id="editModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-2xl">
+        <h3 id="editModalTitle" class="text-xl font-semibold mb-6"></h3>
+        <form id="editForm" class="space-y-6 max-h-[60vh] overflow-y-auto pr-4"></form>
+        <div class="mt-6 flex justify-end space-x-4">
+            <button type="button" onclick="hideModal('editModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
+            <button onclick="saveData()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
+        </div>
+    </div>
+  </div>
+  <div id="addUserModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md">
+        <h3 class="text-xl font-semibold mb-6 text-gray-800 dark:text-white">Add New User</h3>
+        <form id="addUserForm">
+            <div class="mb-4">
+                <label for="newUserEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
+                <input type="email" id="newUserEmail" required class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="mb-4">
+                <label for="newUserPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                <input type="password" id="newUserPassword" required class="mt-1 block w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div id="addUserError" class="text-red-500 text-sm text-center h-5 mb-4"></div>
+            <div class="mt-6 flex justify-end space-x-4">
+                <button type="button" onclick="hideModal('addUserModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
+                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Create User</button>
+            </div>
+        </form>
+    </div>
+  </div>
+  <div id="qrModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0"><div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 text-center"><h3 id="qrModalTitle" class="text-xl font-semibold mb-4"></h3><canvas id="qrCanvas" class="mx-auto"></canvas><button onclick="hideModal('qrModal')" class="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg">Close</button></div></div>
+  <div id="exportModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-lg">
+        <h3 class="text-xl font-semibold mb-6">Export Data to CSV</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select categories and types to export:</label>
+                <div class="col-span-full">
+                    <label class="flex items-center space-x-3 font-semibold">
+                        <input type="checkbox" id="selectAllExport" onchange="toggleAllExportCheckboxes(this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500">
+                        <span>Select All / Deselect All</span>
+                    </label>
+                </div>
+                <div class="col-span-full border-t dark:border-gray-600 my-2"></div>
+                <div id="export-categories-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto pr-2">
+                    <!-- Checkboxes will be inserted here by JS -->
+                </div>
+            </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-4">
+            <button onclick="hideModal('exportModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
+            <button onclick="exportToCsv()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Download CSV</button>
+        </div>
+    </div>
+  </div>
+    <div id="labelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md flex flex-col items-center">
+        <h3 class="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Label Preview</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Intended print size: 4cm x 1.5cm</p>
+        <div id="label-preview-area" style="width: 302px; height: 114px;">
+            <div class="border-2 border-black p-2 flex flex-col bg-white h-full w-full box-border">
+                <div class="text-center font-bold text-lg border-b-2 border-black pb-1">IT Asset</div>
+                <div class="flex items-center mt-2 flex-grow">
+                    <div style="flex-shrink: 0;">
+                        <canvas id="labelQrCanvas"></canvas>
+                    </div>
+                    <div class="flex-1 text-right pl-2 flex flex-col justify-center overflow-hidden">
+                        <p id="labelDeviceName" class="font-bold text-[16px] leading-tight break-words"></p>
+                        <p id="labelSerial" class="text-[12px] break-words"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-4 no-print w-full">
+            <button onclick="hideModal('labelModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button>
+            <button id="downloadLabelButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <i class="fas fa-image mr-2"></i>Download Image
+            </button>
+        </div>
+    </div>
+</div>
+  <!-- Custom Notification Modal -->
+    <div id="notificationModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-sm text-center">
+            <div id="modalIcon"></div>
+            <h3 id="modalTitle" class="text-xl font-semibold mt-4"></h3>
+            <p id="modalMessage" class="text-gray-600 dark:text-gray-300 mt-2"></p>
+            <div class="mt-6">
+                <button onclick="hideModal('notificationModal')" class="px-6 py-2 bg-indigo-600 text-white rounded-lg w-full">Close</button>
+            </div>
+        </div>
+    </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc, writeBatch, serverTimestamp, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew", authDomain: "inventory-eedef.firebaseapp.com", projectId: "inventory-eedef", storageBucket: "inventory-eedef.appspot.com", messagingSenderId: "1089383656081", appId: "1:1089383656081:web:bb8e8237a701f356102d30" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let allData = { Computers: [], Monitors: [], Audio: [], LoanHistory: [], Software: [], Location: [], Accessory: [] };
+    let currentEdit = { mode: null, collection: null, id: null };
+    let statusChart;
+    let paginationState = {};
+    let activeListeners = {}; 
+
+    const collectionConfigs = {
+        Computers: { 
+            headers: ['ComputerName', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location'], 
+            formFields: ['ComputerName', 'Manufacturer', 'Model', 'SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyStartDate', 'WarrantyEndDate'], 
+            nameField: 'ComputerName', 
+            serialField: 'SerialNumber', 
+            icon: 'fa-laptop',
+            categoryFilterField: 'Type',
+            dropdowns: {
+                Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
+                Type: ['Desktop', 'Laptop', 'MacBook', 'Tablet', 'POS']
+            }
+        },
+        Monitors: { 
+            headers: ['ComputerName', 'Model', 'MonitorSerial', 'Status'], 
+            formFields: ['ComputerName', 'Manufacturer', 'Model', 'MonitorSerial', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
+            nameField: 'Model', 
+            serialField: 'MonitorSerial', 
+            icon: 'fa-desktop',
+            dropdowns: {
+                Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed']
+            }
+        },
+        Audio: { 
+            headers: ['ItemName', 'Model', 'SerialNumber', 'Status'], 
+            formFields: ['ItemName', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'WarrantyStartDate', 'WarrantyEndDate'], 
+            nameField: 'ItemName', 
+            serialField: 'SerialNumber', 
+            icon: 'fa-volume-up',
+            dropdowns: {
+                Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed']
+            }
+        },
+        Accessory: {
+            headers: ['AccessoryType', 'Model', 'SerialNumber', 'Status', 'UserName'],
+            formFields: ['AccessoryType', 'Manufacturer', 'Model', 'SerialNumber', 'Status', 'AssignedComputer', 'UserName', 'WarrantyEndDate'],
+            nameField: 'Model',
+            serialField: 'SerialNumber',
+            icon: 'fa-keyboard',
+            categoryFilterField: 'AccessoryType',
+            dropdowns: {
+                Status: ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'],
+                AccessoryType: ['Mouse', 'Keyboard', 'Webcam', 'Docking Station', 'Adapter', 'UPS', 'Other']
+            }
+        }
+    };
+
+    // --- Authentication and App Initialization ---
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in. Show the app and start the logic.
+            document.getElementById('auth-loading').style.display = 'none';
+            document.getElementById('app-container').classList.remove('hidden');
+            document.getElementById('userInfo').textContent = `Logged in as: ${user.email}`;
+            initializeAppLogic();
+        } else {
+            // User is signed out. Redirect to login page.
+            window.location.replace('login.html');
+        }
+    });
+
+    function initializeAppLogic() {
+        const currentHour = new Date().getHours();
+        if (currentHour >= 18 || currentHour < 6) {
+            applyTheme('dark');
+        } else {
+            applyTheme('light');
+        }
+
+        Object.keys(collectionConfigs).forEach(collectionName => {
+            paginationState[collectionName] = {
+                currentPage: 1,
+                rowsPerPage: 10,
+                filterText: '',
+                categoryFilter: null
+            };
+        });
+
+        listenToCollection('Computers', { isInventory: true });
+        listenToCollection('Monitors', { isInventory: true });
+        listenToCollection('Audio', { isInventory: true });
+        listenToCollection('Software', { isInventory: false });
+        listenToCollection('LoanHistory', { isInventory: false });
+        listenToCollection('Location', { isInventory: false });
+        listenToCollection('Accessory', { isInventory: true });
+        
+        document.getElementById('loading-state').style.display = 'none';
+        loadPage('Dashboard', document.getElementById('nav-dashboard'));
+    }
+    
+    window.logout = () => {
+        signOut(auth).catch((error) => {
+            console.error('Sign out error', error);
+        });
+    };
+
+
+    // --- Mobile Navigation ---
+    const sidebar = document.getElementById('sidebar');
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    function toggleMobileNav() {
+        sidebar.classList.toggle('-translate-x-full');
+        sidebarOverlay.classList.toggle('hidden');
+    }
+    mobileMenuButton.addEventListener('click', toggleMobileNav);
+    sidebarOverlay.addEventListener('click', toggleMobileNav);
+
+
+    window.loadPage = (pageName, navElement, filterValue = null) => {
+        document.querySelectorAll('.nav-link, .nav-link-sub').forEach(link => link.classList.remove('active'));
+        if (navElement) {
+            navElement.classList.add('active');
+            const parentDetails = navElement.closest('details');
+            if (parentDetails) {
+                parentDetails.querySelector('summary').classList.add('active');
+            }
+        }
+        
+        document.querySelectorAll('.page-content').forEach(page => page.style.display = 'none');
+        const pageId = pageName.toLowerCase() + '-page';
+        document.getElementById(pageId).style.display = 'block';
+        
+        if (pageName === 'Software') {
+            buildSoftwareCards(allData.Software);
+        } else if (pageName === 'LoanHistory') {
+            buildLoanHistoryCards(allData.LoanHistory);
+        } else if (pageName === 'UserManagement') {
+            buildUserManagementPage();
+        } else if (collectionConfigs[pageName]) {
+            const state = paginationState[pageName];
+            state.categoryFilter = filterValue; 
+            state.filterText = ''; 
+            state.currentPage = 1; 
+
+            const searchInputId = `${pageName.toLowerCase()}SearchInput`;
+            const searchInput = document.getElementById(searchInputId);
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            buildTable(pageName);
+        }
+
+        if (window.innerWidth < 768) {
+            toggleMobileNav();
+        }
+    };
+
+    function buildTable(collectionName, errorMessage = null) {
+        const table = document.getElementById(collectionName + 'Table');
+        if (!table) return;
+
+        const state = paginationState[collectionName];
+        const fullData = allData[collectionName] || [];
+
+        let categoryFilteredData = fullData;
+        const config = collectionConfigs[collectionName];
+        if (state.categoryFilter && config.categoryFilterField) {
+            categoryFilteredData = fullData.filter(item => item[config.categoryFilterField] === state.categoryFilter);
+        }
+
+        const searchFilter = state.filterText.toUpperCase();
+        const finalFilteredData = searchFilter
+            ? categoryFilteredData.filter(item => JSON.stringify(Object.values(item)).toUpperCase().includes(searchFilter))
+            : categoryFilteredData;
+
+        const totalRows = finalFilteredData.length;
+        const startIndex = (state.currentPage - 1) * state.rowsPerPage;
+        const endIndex = startIndex + state.rowsPerPage;
+        const paginatedData = finalFilteredData.slice(startIndex, endIndex);
+
+        table.innerHTML = '';
+        const { headers, nameField, serialField } = config;
+        const displayHeaders = [...headers, 'Actions'];
+        const thead = document.createElement('thead');
+        thead.className = 'bg-gray-50 dark:bg-gray-700';
+        thead.innerHTML = `<tr>${displayHeaders.map(h => `<th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">${h}</th>`).join('')}</tr>`;
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        tbody.className = 'divide-y divide-gray-200 dark:divide-gray-700';
+        
+        if (errorMessage) {
+            tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-red-600" colspan="${displayHeaders.length}">${errorMessage}</td></tr>`;
+        } else if (paginatedData.length === 0) {
+            tbody.innerHTML = `<tr><td class="px-6 py-4 text-center text-gray-500 dark:text-gray-400" colspan="${displayHeaders.length}">No data found.</td></tr>`;
+        } else {
+            paginatedData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors";
+                headers.forEach(header => {
+                    const rawValue = item[header] || '';
+                    let cellValue = rawValue;
+                    
+                    if (header === 'Status' && item.Status === 'Active' && item.Timestamp && typeof item.Timestamp.toDate === 'function') {
+                        const statusDate = item.Timestamp.toDate();
+                        const now = new Date();
+                        const diffTime = now.getTime() - statusDate.getTime();
+                        const diffDays = Math.floor(diffTime / (1000 * 3600 * 24));
+
+                        let daysText = (diffDays < 1) ? '(Today)' : `(${diffDays} days ago)`;
+                        
+                        let statusColorClass = 'text-green-600 dark:text-green-400';
+                        if (diffDays > 7 && diffDays <= 30) statusColorClass = 'text-yellow-500 dark:text-yellow-400';
+                        else if (diffDays > 30) statusColorClass = 'text-red-500 dark:text-red-400';
+
+                        cellValue = `<span class="font-semibold ${statusColorClass}">${rawValue} ${daysText}</span>`;
+                    } else if (header === 'WarrantyEndDate' && item.WarrantyEndDate) {
+                        const endDate = new Date(item.WarrantyEndDate);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        if (!isNaN(endDate)) {
+                            const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                            let colorClass = 'text-green-500', daysText = `(${diffDays} days left)`;
+                            if (diffDays < 0) { colorClass = 'text-red-500'; daysText = '(Expired)'; }
+                            else if (diffDays <= 30) { colorClass = 'text-yellow-500'; }
+                            cellValue = `<span>${rawValue} <span class="${colorClass} text-xs">${daysText}</span></span>`;
+                        }
+                    }
+
+                    if (collectionName === 'Computers') {
+                        if (header === 'UserName' && Array.isArray(item.PreviousUserNames) && item.PreviousUserNames.length > 0) {
+                            cellValue = `<span class="flex items-center">${rawValue} <i class="fas fa-history text-xs text-gray-400 ml-2" title="Previous: ${item.PreviousUserNames.join(', ')}"></i></span>`;
+                        }
+                        if (header === 'ComputerName' && Array.isArray(item.PreviousComputerNames) && item.PreviousComputerNames.length > 0) {
+                            cellValue = `<span class="flex items-center">${rawValue} <i class="fas fa-history text-xs text-gray-400 ml-2" title="Previous: ${item.PreviousComputerNames.join(', ')}"></i></span>`;
+                        }
+                    }
+
+                    let extraClasses = (['ComputerName', 'ItemName', 'Model', 'UserName', 'Location'].includes(header)) ? 'truncate' : 'whitespace-nowrap';
+                    tr.innerHTML += `<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-200 ${extraClasses}" title="${rawValue}">${cellValue}</td>`;
+                });
+                tr.innerHTML += `<td class="px-6 py-4 text-sm font-medium space-x-4 whitespace-nowrap"><button onclick="openModal('edit', '${collectionName}', '${item.id}')" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" title="Edit"><i class="fas fa-edit"></i></button><button onclick="deleteItem('${collectionName}', '${item.id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Delete"><i class="fas fa-trash"></i></button><button onclick="showQrModal('${item[serialField]}', '${item[nameField]}', 'device')" class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" title="Show QR"><i class="fas fa-qrcode"></i></button><button onclick="openLabelModal('${collectionName}', '${item.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" title="Download Label"><i class="fas fa-download"></i></button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        table.appendChild(tbody);
+        renderPaginationControls(collectionName, totalRows);
+    }
+    
+    window.renderPaginationControls = function(collectionName, totalRows) {
         const container = document.getElementById(collectionName + 'Pagination');
         if (!container) return;
 
@@ -398,18 +1118,13 @@ function renderPaginationControls
         });
     };
 
-    // --- MODIFIED: Caching logic ---
+    // --- Caching logic ---
     function listenToCollection(collectionName, config) {
-        // Check if a listener is already active for this collection to prevent duplicates.
-        if (activeListeners[collectionName]) {
-            return; // If yes, do nothing. The cache is already being updated in real-time.
-        }
+        if (activeListeners[collectionName]) return;
 
         const listener = onSnapshot(collection(db, collectionName), (snapshot) => {
-            // Update the local cache (`allData`) with the latest data from Firestore.
             allData[collectionName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            // Re-render the currently visible page and the dashboard to reflect the changes.
             if (config.isInventory) {
                 if(document.getElementById(`${collectionName.toLowerCase()}-page`).style.display === 'block') {
                     buildTable(collectionName);
@@ -433,11 +1148,9 @@ function renderPaginationControls
             else if (collectionName === 'LoanHistory') buildLoanHistoryCards([], msg);
             else if (collectionName === 'Software') buildSoftwareCards([], msg);
 
-            // If listener fails, remove it so it can be re-initialized on next attempt.
             delete activeListeners[collectionName];
         });
 
-        // Store the listener's unsubscribe function to mark it as active.
         activeListeners[collectionName] = listener;
     }
     
@@ -452,7 +1165,7 @@ function renderPaginationControls
         const getCountByStatus = (data, status) => data.filter(d => d.Status === status).length;
         
         const today = new Date();
-        today.setHours(0,0,0,0); // Normalize to start of today
+        today.setHours(0,0,0,0);
         
         const thirtyDaysFromNow = new Date(today);
         thirtyDaysFromNow.setDate(today.getDate() + 30);
@@ -465,7 +1178,7 @@ function renderPaginationControls
 
         const twoDaysFromNow = new Date(today);
         twoDaysFromNow.setDate(today.getDate() + 2);
-        twoDaysFromNow.setHours(23, 59, 59, 999); // Normalize to end of the day
+        twoDaysFromNow.setHours(23, 59, 59, 999);
 
         const dueSoonItems = loanHistory.filter(loan => {
             if (loan.Status !== 'On Loan' || !loan.DueDate?.toDate) {
@@ -483,7 +1196,6 @@ function renderPaginationControls
         document.getElementById('stat-total-disposed').textContent = getCountByStatus(allDevices, 'Disposed');
         document.getElementById('stat-total-warranty-ending').textContent = warrantyEndingSoon.length;
 
-        // Update Computer Card with Breakdown
         document.getElementById('cat-total-computers').textContent = computers.length;
         const computerTypes = collectionConfigs.Computers.dropdowns.Type;
         const computerBreakdownContainer = document.getElementById('computer-type-breakdown');
@@ -492,24 +1204,21 @@ function renderPaginationControls
         computerTypes.forEach(type => {
             const computersOfType = computers.filter(c => c.Type === type);
             if (computersOfType.length > 0) {
-                const typeHtml = `
+                computerBreakdownContainer.innerHTML += `
                     <div>
                         <h4 class="font-semibold text-md text-gray-700 dark:text-gray-300 mb-2">${type} (${computersOfType.length})</h4>
                         <div class="space-y-2 text-sm pl-2">
-                            <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium text-green-500">${getCountByStatus(computersOfType, 'Active')}</span></div>
-                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium text-yellow-500">${getCountByStatus(computersOfType, 'On Loan')}</span></div>
-                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium text-orange-500">${getCountByStatus(computersOfType, 'Repair')}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium text-gray-500">${getCountByStatus(computersOfType, 'Storage')}</span></div>
-                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium text-pink-500">${getCountByStatus(computersOfType, 'Damaged')}</span></div>
-                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium text-red-500">${getCountByStatus(computersOfType, 'Disposed')}</span></div>
+                            <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Active')}</span></div>
+                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium">${getCountByStatus(computersOfType, 'On Loan')}</span></div>
+                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Repair')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Storage')}</span></div>
+                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Damaged')}</span></div>
+                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Disposed')}</span></div>
                         </div>
-                    </div>
-                `;
-                computerBreakdownContainer.innerHTML += typeHtml;
+                    </div>`;
             }
         });
 
-        // Update Monitor Card
         document.getElementById('cat-total-monitors').textContent = monitors.length;
         document.getElementById('cat-monitors-active').textContent = getCountByStatus(monitors, 'Active');
         document.getElementById('cat-monitors-on-loan').textContent = getCountByStatus(monitors, 'On Loan');
@@ -518,7 +1227,6 @@ function renderPaginationControls
         document.getElementById('cat-monitors-damaged').textContent = getCountByStatus(monitors, 'Damaged');
         document.getElementById('cat-monitors-disposed').textContent = getCountByStatus(monitors, 'Disposed');
 
-        // Update Audio Card
         document.getElementById('cat-total-audio').textContent = audio.length;
         document.getElementById('cat-audio-active').textContent = getCountByStatus(audio, 'Active');
         document.getElementById('cat-audio-on-loan').textContent = getCountByStatus(audio, 'On Loan');
@@ -526,8 +1234,7 @@ function renderPaginationControls
         document.getElementById('cat-audio-storage').textContent = getCountByStatus(audio, 'Storage');
         document.getElementById('cat-audio-damaged').textContent = getCountByStatus(audio, 'Damaged');
         document.getElementById('cat-audio-disposed').textContent = getCountByStatus(audio, 'Disposed');
-
-        // Update Accessory Card with Breakdown
+        
         document.getElementById('cat-total-accessories').textContent = accessories.length;
         const accessoryTypes = collectionConfigs.Accessory.dropdowns.AccessoryType;
         const accessoryBreakdownContainer = document.getElementById('accessory-type-breakdown');
@@ -536,27 +1243,23 @@ function renderPaginationControls
         accessoryTypes.forEach(type => {
             const accessoriesOfType = accessories.filter(c => c.AccessoryType === type);
             if (accessoriesOfType.length > 0) {
-                const typeHtml = `
+                accessoryBreakdownContainer.innerHTML += `
                     <div>
                         <h4 class="font-semibold text-md text-gray-700 dark:text-gray-300 mb-2">${type} (${accessoriesOfType.length})</h4>
                         <div class="space-y-2 text-sm pl-2">
-                            <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium text-green-500">${getCountByStatus(accessoriesOfType, 'Active')}</span></div>
-                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium text-yellow-500">${getCountByStatus(accessoriesOfType, 'On Loan')}</span></div>
-                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium text-orange-500">${getCountByStatus(accessoriesOfType, 'Repair')}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium text-gray-500">${getCountByStatus(accessoriesOfType, 'Storage')}</span></div>
-                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium text-pink-500">${getCountByStatus(accessoriesOfType, 'Damaged')}</span></div>
-                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium text-red-500">${getCountByStatus(accessoriesOfType, 'Disposed')}</span></div>
+                             <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Active')}</span></div>
+                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'On Loan')}</span></div>
+                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Repair')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Storage')}</span></div>
+                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Damaged')}</span></div>
+                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Disposed')}</span></div>
                         </div>
-                    </div>
-                `;
-                accessoryBreakdownContainer.innerHTML += typeHtml;
+                    </div>`;
             }
         });
 
         const statusCounts = allDevices.reduce((acc, device) => {
-            if(device.Status) {
-               acc[device.Status] = (acc[device.Status] || 0) + 1;
-            }
+            if(device.Status) acc[device.Status] = (acc[device.Status] || 0) + 1;
             return acc;
         }, {});
         renderStatusChart(statusCounts);
@@ -603,15 +1306,7 @@ function renderPaginationControls
     function renderRecentActivities(loanData, allDevices) {
         const tbody = document.getElementById('recent-activities-table');
         tbody.innerHTML = '';
-
-        const activities = loanData.map(loan => {
-            const activityDate = loan.ReturnDate ? loan.ReturnDate : loan.LoanDate;
-            return {
-                ...loan,
-                activityType: loan.ReturnDate ? 'Return' : 'Loan',
-                activityTimestamp: activityDate?.toDate ? activityDate.toDate() : new Date(0)
-            };
-        }).sort((a, b) => b.activityTimestamp - a.activityTimestamp).slice(0, 5);
+        const activities = loanData.map(loan => ({...loan, activityType: loan.ReturnDate ? 'Return' : 'Loan', activityTimestamp: (loan.ReturnDate || loan.LoanDate)?.toDate() || new Date(0)})).sort((a, b) => b.activityTimestamp - a.activityTimestamp).slice(0, 5);
 
         if (activities.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 dark:text-gray-400 py-4">No recent activity</td></tr>`;
@@ -622,19 +1317,12 @@ function renderPaginationControls
             const config = collectionConfigs[act.DeviceType];
             const device = allDevices.find(d => config && d[config.serialField] === act.DeviceSerial);
             const deviceName = device && config ? device[config.nameField] : act.DeviceSerial;
-            
-            const activityHtml = act.activityType === 'Loan'
-                ? `<span class="font-semibold text-yellow-500">Loaned</span>`
-                : `<span class="font-semibold text-green-500">Returned</span>`;
-
-            tbody.innerHTML += `
-                <tr class="text-sm">
-                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${deviceName}</td>
-                    <td class="px-4 py-2">${activityHtml}</td>
-                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.BorrowerName}</td>
-                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.activityTimestamp.toLocaleDateString('th-TH')}</td>
-                </tr>
-            `;
+            const activityHtml = act.activityType === 'Loan' ? `<span class="font-semibold text-yellow-500">Loaned</span>` : `<span class="font-semibold text-green-500">Returned</span>`;
+            tbody.innerHTML += `<tr class="text-sm">
+                <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${deviceName}</td>
+                <td class="px-4 py-2">${activityHtml}</td>
+                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.BorrowerName}</td>
+                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.activityTimestamp.toLocaleDateString('th-TH')}</td></tr>`;
         });
     }
 
@@ -653,18 +1341,14 @@ function renderPaginationControls
             const config = Object.values(collectionConfigs).find(c => device[c.serialField]);
             const category = Object.keys(collectionConfigs).find(key => allData[key].some(d => d.id === device.id)) || 'N/A';
             const endDate = new Date(device.WarrantyEndDate);
-            const diffTime = endDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
 
-            tbody.innerHTML += `
-                <tr class="text-sm">
-                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${device[config.nameField]}</td>
-                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device[config.serialField]}</td>
-                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${category}</td>
-                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device.WarrantyEndDate}</td>
-                    <td class="px-4 py-2 font-semibold text-red-500">${diffDays} days</td>
-                </tr>
-            `;
+            tbody.innerHTML += `<tr class="text-sm">
+                <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${device[config.nameField]}</td>
+                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device[config.serialField]}</td>
+                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${category}</td>
+                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device.WarrantyEndDate}</td>
+                <td class="px-4 py-2 font-semibold text-red-500">${diffDays} days</td></tr>`;
         });
     }
 
@@ -687,27 +1371,16 @@ function renderPaginationControls
             const deviceName = device && config ? device[config.nameField] : item.DeviceSerial;
             
             const dueDate = item.DueDate.toDate();
-            const diffTime = dueDate.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            let daysText = `${diffDays} days`;
-            let textColor = 'text-yellow-500';
-
-            if (diffDays <= 0) {
-                daysText = 'Due Today';
-                textColor = 'text-red-500 animate-pulse';
-            } else if (diffDays === 1) {
-                daysText = '1 day';
-            }
+            const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+            let daysText = `${diffDays} days`, textColor = 'text-yellow-500';
+            if (diffDays <= 0) { daysText = 'Due Today'; textColor = 'text-red-500 animate-pulse'; }
+            else if (diffDays === 1) { daysText = '1 day'; }
             
-            tbody.innerHTML += `
-                <tr class="text-sm">
-                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${item.BorrowerName}</td>
-                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${deviceName}</td>
-                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${dueDate.toLocaleDateString('th-TH')}</td>
-                    <td class="px-4 py-2 font-semibold ${textColor}">${daysText}</td>
-                </tr>
-            `;
+            tbody.innerHTML += `<tr class="text-sm">
+                <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${item.BorrowerName}</td>
+                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${deviceName}</td>
+                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${dueDate.toLocaleDateString('th-TH')}</td>
+                <td class="px-4 py-2 font-semibold ${textColor}">${daysText}</td></tr>`;
         });
     }
     
@@ -724,31 +1397,16 @@ function renderPaginationControls
                     <span>Select All / Deselect All</span>
                 </label>
             </div>
-            <div class="col-span-full border-t dark:border-gray-600"></div>
-        `;
+            <div class="col-span-full border-t dark:border-gray-600"></div>`;
 
         Object.keys(exportableCollections).forEach(collectionName => {
             const config = exportableCollections[collectionName];
-            
             if (config.categoryFilterField && config.dropdowns && config.dropdowns[config.categoryFilterField]) {
-                const types = config.dropdowns[config.categoryFilterField];
-                types.forEach(type => {
-                    const value = `${collectionName}:${type}`;
-                    container.innerHTML += `
-                        <label class="flex items-center space-x-3">
-                            <input type="checkbox" name="export-category" value="${value}" class="rounded text-indigo-600 focus:ring-indigo-500 export-checkbox">
-                            <span class="text-gray-700 dark:text-gray-300">${collectionName} - ${type}</span>
-                        </label>
-                    `;
+                config.dropdowns[config.categoryFilterField].forEach(type => {
+                    container.innerHTML += `<label class="flex items-center space-x-3"><input type="checkbox" name="export-category" value="${collectionName}:${type}" class="rounded text-indigo-600 focus:ring-indigo-500 export-checkbox"><span class="text-gray-700 dark:text-gray-300">${collectionName} - ${type}</span></label>`;
                 });
             } else {
-                const value = collectionName;
-                container.innerHTML += `
-                    <label class="flex items-center space-x-3">
-                        <input type="checkbox" name="export-category" value="${value}" class="rounded text-indigo-600 focus:ring-indigo-500 export-checkbox">
-                        <span class="text-gray-700 dark:text-gray-300">${collectionName}</span>
-                    </label>
-                `;
+                container.innerHTML += `<label class="flex items-center space-x-3"><input type="checkbox" name="export-category" value="${collectionName}" class="rounded text-indigo-600 focus:ring-indigo-500 export-checkbox"><span class="text-gray-700 dark:text-gray-300">${collectionName}</span></label>`;
             }
         });
         document.getElementById('exportModal').classList.remove('opacity-0', 'pointer-events-none');
@@ -766,42 +1424,23 @@ function renderPaginationControls
         }
 
         const selectedItems = Array.from(checkboxes).map(cb => cb.value);
-        
-        let dataToExport = [];
-        let summaryData = {};
+        let dataToExport = [], summaryData = {};
 
         selectedItems.forEach(itemValue => {
-            const parts = itemValue.split(':');
-            const collectionName = parts[0];
-            const subType = parts.length > 1 ? parts[1] : null;
-            
+            const [collectionName, subType] = itemValue.split(':');
             const categoryData = allData[collectionName] || [];
             const config = collectionConfigs[collectionName];
             
-            let filteredData = [];
-            let exportCategoryLabel = collectionName;
+            let filteredData = subType ? categoryData.filter(item => item[config.categoryFilterField] === subType) : categoryData;
+            let exportCategoryLabel = subType ? `${collectionName} - ${subType}` : collectionName;
 
-            if (subType && config) {
-                filteredData = categoryData.filter(item => item[config.categoryFilterField] === subType);
-                exportCategoryLabel = `${collectionName} - ${subType}`;
-            } else {
-                filteredData = categoryData;
-            }
-
-            const dataWithCategory = filteredData.map(item => {
+            dataToExport.push(...filteredData.map(item => {
                 const cleanItem = {...item};
-                Object.keys(cleanItem).forEach(key => {
-                    if (cleanItem[key] && typeof cleanItem[key].toDate === 'function') {
-                        cleanItem[key] = cleanItem[key].toDate().toLocaleString('th-TH');
-                    }
-                });
+                Object.keys(cleanItem).forEach(key => { if (cleanItem[key]?.toDate) cleanItem[key] = cleanItem[key].toDate().toLocaleString('th-TH'); });
                 return { Category: exportCategoryLabel, ...cleanItem };
-            });
-            dataToExport.push(...dataWithCategory);
+            }));
             
-            if (collectionName !== 'LoanHistory') {
-                 summaryData[exportCategoryLabel] = filteredData;
-            }
+            if (collectionName !== 'LoanHistory') summaryData[exportCategoryLabel] = filteredData;
         });
 
         if (dataToExport.length === 0) {
@@ -809,54 +1448,36 @@ function renderPaginationControls
             return;
         }
 
-        // --- Create Summary CSV ---
         let summaryCsvContent = 'Category Status Summary\n';
         const allStatuses = ['Active', 'On Loan', 'Repair', 'Storage', 'Damaged', 'Disposed'];
         summaryCsvContent += 'Category / Type,Total,' + allStatuses.join(',') + '\n';
-
         Object.keys(summaryData).sort().forEach(label => {
             const data = summaryData[label];
             const counts = { Total: data.length };
-            allStatuses.forEach(status => {
-                counts[status] = data.filter(item => item.Status === status).length;
-            });
-            const row = [label, counts.Total, ...allStatuses.map(status => counts[status] || 0)].join(',');
-            summaryCsvContent += row + '\n';
+            allStatuses.forEach(status => counts[status] = data.filter(item => item.Status === status).length);
+            summaryCsvContent += [label, counts.Total, ...allStatuses.map(status => counts[status] || 0)].join(',') + '\n';
         });
         
         summaryCsvContent += '\n\nRaw Data\n';
 
-        // --- Create Raw Data CSV ---
         const headers = [...new Set(dataToExport.flatMap(obj => Object.keys(obj)))];
         const sanitizeCell = (cell) => {
-            if (cell === null || cell === undefined) return '';
-            let cellStr = String(cell);
-            if (Array.isArray(cell)) {
-                cellStr = cell.join('; '); // Join array elements
-            }
+            let cellStr = (cell === null || cell === undefined) ? '' : String(cell);
+            if (Array.isArray(cell)) cellStr = cell.join('; ');
             if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
-                cellStr = cellStr.replace(/"/g, '""');
-                return `"${cellStr}"`;
+                return `"${cellStr.replace(/"/g, '""')}"`;
             }
             return cellStr;
         };
         let dataCsvContent = headers.join(',') + '\n';
-        dataToExport.forEach(item => {
-            const row = headers.map(header => sanitizeCell(item[header])).join(',');
-            dataCsvContent += row + '\n';
-        });
+        dataToExport.forEach(item => dataCsvContent += headers.map(header => sanitizeCell(item[header])).join(',') + '\n');
 
-        // --- Combine and Download ---
         const finalCsvContent = summaryCsvContent + dataCsvContent;
-        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); // BOM for UTF-8
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
         const blob = new Blob([bom, finalCsvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        
-        const date = new Date().toISOString().slice(0, 10);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `inventory_report_${date}.csv`);
-        link.style.visibility = 'hidden';
+        link.href = URL.createObjectURL(blob);
+        link.download = `inventory_report_${new Date().toISOString().slice(0, 10)}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -873,51 +1494,36 @@ function renderPaginationControls
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-
         const labelWidth = 40, labelHeight = 15, pageMargin = 10, gap = 2;
         const labelsPerRow = Math.floor((210 - (2*pageMargin) + gap) / (labelWidth + gap));
-        const labelsPerCol = Math.floor((297 - (2*pageMargin) + gap) / (labelHeight + gap));
         const labelsPerPage = labelsPerRow * labelsPerCol;
         let labelCount = 0;
-        
         const qrCanvas = document.createElement('canvas');
 
         for (const item of deviceList) {
             if (labelCount > 0 && labelCount % labelsPerPage === 0) doc.addPage();
 
             const indexOnPage = labelCount % labelsPerPage;
-            const col = indexOnPage % labelsPerRow;
-            const row = Math.floor(indexOnPage / labelsPerRow);
-            const x = pageMargin + col * (labelWidth + gap);
-            const y = pageMargin + row * (labelHeight + gap);
-            
+            const col = indexOnPage % labelsPerRow, row = Math.floor(indexOnPage / labelsPerRow);
+            const x = pageMargin + col * (labelWidth + gap), y = pageMargin + row * (labelHeight + gap);
             const config = Object.values(collectionConfigs).find(c => item[c.serialField]);
             if (!config) continue;
 
             const deviceName = item[config.nameField] || 'N/A';
             const serialNumber = item[config.serialField] || 'N/A';
-
+            const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
+            
+            await QRCode.toCanvas(qrCanvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
+            
             doc.rect(x, y, labelWidth, labelHeight);
-            doc.setFontSize(6);
-            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(6).setFont('helvetica', 'bold');
             doc.text('IT Department Asset', x + labelWidth / 2, y + 2.5, { align: 'center' });
             doc.line(x + 1, y + 3, x + labelWidth - 1, y + 3);
-
-            const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-            await QRCode.toCanvas(qrCanvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
-            const qrImgData = qrCanvas.toDataURL('image/png');
-            const qrSize = 10;
-            doc.addImage(qrImgData, 'PNG', x + 1, y + 4, qrSize, qrSize);
-
-            doc.setFontSize(7);
-            doc.setFont('helvetica', 'bold');
-            const nameLines = doc.splitTextToSize(deviceName, labelWidth - qrSize - 3); 
-            doc.text(nameLines, x + qrSize + 2, y + 7);
-            
-            doc.setFontSize(5);
-            doc.setFont('helvetica', 'normal');
-            const snLines = doc.splitTextToSize(`SN: ${serialNumber}`, labelWidth - qrSize - 3);
-            doc.text(snLines, x + qrSize + 2, y + 7 + (nameLines.length * 2.5));
+            doc.addImage(qrCanvas.toDataURL('image/png'), 'PNG', x + 1, y + 4, 10, 10);
+            doc.setFontSize(7).setFont('helvetica', 'bold');
+            doc.text(doc.splitTextToSize(deviceName, labelWidth - 13), x + 12, y + 7);
+            doc.setFontSize(5).setFont('helvetica', 'normal');
+            doc.text(doc.splitTextToSize(`SN: ${serialNumber}`, labelWidth - 13), x + 12, y + 11.5);
 
             labelCount++;
         }
@@ -957,40 +1563,6 @@ function renderPaginationControls
             statusChart.update();
         }
     }
-
-    window.addEventListener('load', () => {
-        // --- Automatic Theme based on Time ---
-        const currentHour = new Date().getHours();
-        // Set dark mode from 6 PM (18) to 5:59 AM (5)
-        if (currentHour >= 18 || currentHour < 6) {
-            applyTheme('dark');
-        } else {
-            applyTheme('light');
-        }
-
-        Object.keys(collectionConfigs).forEach(collectionName => {
-            paginationState[collectionName] = {
-                currentPage: 1,
-                rowsPerPage: 10,
-                filterText: '',
-                categoryFilter: null
-            };
-        });
-
-        // --- Caching Implementation ---
-        // These listeners are now set up only once per page session.
-        // They will populate the `allData` cache and keep it updated in real-time.
-        listenToCollection('Computers', { isInventory: true });
-        listenToCollection('Monitors', { isInventory: true });
-        listenToCollection('Audio', { isInventory: true });
-        listenToCollection('Software', { isInventory: false });
-        listenToCollection('LoanHistory', { isInventory: false });
-        listenToCollection('Location', { isInventory: false });
-        listenToCollection('Accessory', { isInventory: true });
-        
-        document.getElementById('loading-state').style.display = 'none';
-        loadPage('Dashboard', document.getElementById('nav-dashboard'));
-    });
   </script>
 </body>
 </html>

@@ -425,24 +425,28 @@
         </div>
     </div>
   </div>
-    <div id="labelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
+  <div id="labelModal" class="modal pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 opacity-0">
     <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md flex flex-col items-center">
         <h3 class="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Label Preview</h3>
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Intended print size: 5cm x 2cm</p>
-        <div id="label-preview-area" style="width: 300px; height: 120px;">
-            <div class="border-2 border-black p-2 flex flex-col bg-white h-full w-full box-border">
-                <div class="text-center font-bold text-xl border-b-2 border-black pb-1">IT Asset</div>
-                <div class="flex items-center mt-2 flex-grow">
-                    <div style="flex-shrink: 0;">
-                        <canvas id="labelQrCanvas"></canvas>
-                    </div>
-                    <div class="flex-1 text-right pl-2 flex flex-col justify-center overflow-hidden">
-                        <p id="labelDeviceName" class="font-bold text-[18px] leading-tight break-words"></p>
-                        <p id="labelSerial" class="text-[14px] break-words"></p>
-                    </div>
+        <!-- START: Revised Label Layout -->
+        <div id="label-preview-area" style="width: 378px; height: 151px;"> <!-- 5cm x 2cm at 72dpi -->
+            <div class="border-2 border-black p-3 flex flex-col bg-white h-full w-full box-border font-sans">
+                <div class="text-center">
+                    <p class="font-bold text-2xl">IT Department Asset</p>
+                </div>
+                <div class="border-b-2 border-dashed border-gray-400 my-2"></div>
+                <div class="flex items-center justify-center flex-grow">
+                    <canvas id="labelQrCanvas"></canvas>
+                </div>
+                 <div class="border-b-2 border-dashed border-gray-400 my-2"></div>
+                <div class="flex justify-between items-end">
+                    <p id="labelDeviceName" class="font-semibold text-lg leading-tight break-all"></p>
+                    <p id="labelSerial" class="text-sm text-gray-600 font-mono break-all"></p>
                 </div>
             </div>
         </div>
+        <!-- END: Revised Label Layout -->
         <div class="mt-6 flex justify-end space-x-4 no-print w-full">
             <button onclick="hideModal('labelModal')" class="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">Close</button>
             <button id="downloadLabelButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -1113,8 +1117,12 @@
         document.getElementById('labelSerial').textContent = `SN: ${serialNumber}`;
 
         const canvas = document.getElementById('labelQrCanvas');
+        const qrSize = 80; // Adjusted QR Code size for new layout
+        canvas.width = qrSize;
+        canvas.height = qrSize;
+        
         const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-        QRCode.toCanvas(canvas, url, { width: 70, margin: 1, errorCorrectionLevel: 'H' });
+        QRCode.toCanvas(canvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: 'H' });
         
         const downloadBtn = document.getElementById('downloadLabelButton');
         downloadBtn.onclick = () => downloadLabelAsImage(item, config);

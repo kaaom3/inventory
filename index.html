@@ -438,16 +438,17 @@
                 </div>
                 <div class="border-b-2 border-dashed border-gray-400 my-1 flex-shrink-0"></div>
                 
-                <!-- Body (QR Code) - this will grow to fill space -->
-                <div class="flex-grow flex items-center justify-center">
-                    <canvas id="labelQrCanvas"></canvas>
-                </div>
-
-                <!-- Footer -->
-                <div class="border-b-2 border-dashed border-gray-400 mb-1 flex-shrink-0"></div>
-                <div class="flex justify-between items-end flex-shrink-0">
-                    <p id="labelDeviceName" class="font-semibold text-base leading-tight break-all"></p>
-                    <p id="labelSerial" class="text-xs text-gray-600 font-mono break-all"></p>
+                <!-- Body: QR Left, Info Right -->
+                <div class="flex-grow flex items-center space-x-4 p-1">
+                    <!-- QR Code on the left -->
+                    <div class="flex-shrink-0">
+                        <canvas id="labelQrCanvas"></canvas>
+                    </div>
+                    <!-- Info on the right -->
+                    <div class="flex-1 flex flex-col justify-center text-right overflow-hidden">
+                        <p id="labelDeviceName" class="font-bold text-xl leading-tight break-words"></p>
+                        <p id="labelSerial" class="text-base font-mono break-all mt-2"></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -477,7 +478,7 @@
     import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc, writeBatch, serverTimestamp, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew", authDomain: "inventory-eedef.firebaseapp.com", projectId: "inventory-eedef", storageBucket: "inventory-eedef.appspot.com", messagingSenderId: "1089383656081", appId: "1:1089383656081:web:bb8e8237a701f356102d30" };
+    const firebaseConfig = { apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew", authDomain: "inventory-eedef.firebaseapp.com", projectId: "inventory-eedef", storageBucket: "inventory-eedef.appspot.com", messagingSenderId: "1089383656081", appId: "1:1089383656081:web:bb8e8237a701f56102d30" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
@@ -1122,7 +1123,7 @@
         document.getElementById('labelSerial').textContent = `SN: ${serialNumber}`;
 
         const canvas = document.getElementById('labelQrCanvas');
-        const qrSize = 80; // Adjusted QR Code size for new layout
+        const qrSize = 110; // Adjusted for new layout
         canvas.width = qrSize;
         canvas.height = qrSize;
         

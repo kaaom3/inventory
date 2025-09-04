@@ -430,24 +430,19 @@
         <h3 class="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Label Preview</h3>
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Intended print size: 5cm x 2cm</p>
         <!-- START: Revised Label Layout -->
-        <div id="label-preview-area" style="width: 378px; height: 151px;"> <!-- 5cm x 2cm at ~96 DPI -->
+        <div id="label-preview-area" style="width: 378px; height: 151px;">
             <div class="border-2 border-black p-2 flex flex-col bg-white h-full w-full box-border font-sans">
-                <!-- Header -->
-                <div class="text-center flex-shrink-0">
+                <div class="text-center">
                     <p class="font-bold text-xl">IT Department Asset</p>
                 </div>
-                <div class="border-b-2 border-dashed border-gray-400 my-1 flex-shrink-0"></div>
-                
-                <!-- Body: QR Left, Info Right -->
-                <div class="flex-grow flex items-center space-x-4 p-1">
-                    <!-- QR Code on the left -->
+                <div class="border-b-2 border-dashed border-gray-400 my-1"></div>
+                <div class="flex-grow flex items-center space-x-3 p-1">
                     <div class="flex-shrink-0">
                         <canvas id="labelQrCanvas"></canvas>
                     </div>
-                    <!-- Info on the right -->
-                    <div class="flex-1 flex flex-col justify-center text-right overflow-hidden">
-                        <p id="labelDeviceName" class="font-bold text-xl leading-tight break-words"></p>
-                        <p id="labelSerial" class="text-base font-mono break-all mt-1"></p>
+                    <div class="flex-1 flex flex-col justify-start text-right overflow-hidden">
+                        <p id="labelDeviceName" class="font-bold text-lg leading-tight break-words"></p>
+                        <p id="labelSerial" class="text-sm font-mono break-all mt-1"></p>
                     </div>
                 </div>
             </div>
@@ -1123,7 +1118,7 @@
         document.getElementById('labelSerial').textContent = `SN: ${serialNumber}`;
 
         const canvas = document.getElementById('labelQrCanvas');
-        const qrSize = 90; // Adjusted QR Code size for new layout
+        const qrSize = 100; 
         canvas.width = qrSize;
         canvas.height = qrSize;
         

@@ -1043,52 +1043,19 @@
 
     window.hideModal = (modalId) => document.getElementById(modalId).classList.add('opacity-0', 'pointer-events-none');
 
-    function showNotificationModal(type, title, message) {
-        const modal = document.getElementById('notificationModal');
-        const iconDiv = document.getElementById('modalIcon');
-        document.getElementById('modalTitle').textContent = title;
-        document.getElementById('modalMessage').textContent = message;
-
-        let iconHtml = '';
-        if (type === 'success') {
-            iconHtml = `<div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/50"><i class="fas fa-check text-2xl text-green-600 dark:text-green-400"></i></div>`;
-        } else if (type === 'info') {
-            iconHtml = `<div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50"><i class="fas fa-info-circle text-2xl text-blue-600 dark:text-blue-400"></i></div>`;
-        } else if (type === 'warning') {
-            iconHtml = `<div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/50"><i class="fas fa-exclamation-triangle text-2xl text-yellow-600 dark:text-yellow-400"></i></div>`;
-        }
-        iconDiv.innerHTML = iconHtml;
-
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-    }
-
     window.saveData = async () => {
         const formData = new FormData(document.getElementById('editForm'));
         const data = Object.fromEntries(formData.entries());
         const { mode, collection, id } = currentEdit;
         try {
-            if (mode === 'edit') {
-                await setDoc(doc(db, collection, id), data, { merge: true });
-            } else {
-                data.Timestamp = serverTimestamp(); // Add timestamp for new items
-                await addDoc(collection(db, collection), data);
-            }
+            if (mode === 'edit') await setDoc(doc(db, collection, id), data, { merge: true });
+            else await addDoc(collection(db, collection), data);
             hideModal('editModal');
-        } catch (error) { 
-            console.error("Error saving data:", error); 
-            showNotificationModal('warning', 'Save Failed', 'Could not save the data. Please check the console for more details.');
-        }
+        } catch (error) { console.error("Error:", error); alert("Failed to save."); }
     };
 
     window.deleteItem = async (collectionName, id) => {
-        if (confirm(`Are you sure you want to delete this item?`)) {
-            try { 
-                await deleteDoc(doc(db, collectionName, id)); 
-            } catch (error) { 
-                console.error("Error deleting item:", error); 
-                showNotificationModal('warning', 'Delete Failed', 'Could not delete the item.');
-            }
-        }
+        if (confirm(`Are you sure?`)) try { await deleteDoc(doc(db, collectionName, id)); } catch (error) { console.error("Error:", error); alert("Failed to delete."); }
     };
 
     window.showQrModal = (data, name, type) => {
@@ -1107,7 +1074,7 @@
         const config = collectionConfigs[collectionName];
         const item = allData[collectionName].find(i => i.id === id);
         if (!item) {
-            showNotificationModal('warning', 'Not Found', 'Device could not be found.');
+            alert('Device not found!');
             return;
         }
 
@@ -1118,12 +1085,8 @@
         document.getElementById('labelSerial').textContent = `SN: ${serialNumber}`;
 
         const canvas = document.getElementById('labelQrCanvas');
-        const qrSize = 100; 
-        canvas.width = qrSize;
-        canvas.height = qrSize;
-        
         const url = `${window.location.origin}${window.location.pathname.replace('index.html', '')}details.html?sn=${serialNumber}`;
-        QRCode.toCanvas(canvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: 'H' });
+        QRCode.toCanvas(canvas, url, { width: 45, margin: 1, errorCorrectionLevel: 'H' });
         
         const downloadBtn = document.getElementById('downloadLabelButton');
         downloadBtn.onclick = () => downloadLabelAsImage(item, config);
@@ -1135,32 +1098,26 @@
         const serialNumber = item[config.serialField] || 'unknown_sn';
         const labelElement = document.getElementById('label-preview-area');
 
-        // Apply a class to the captured element to force light theme for consistent output
-        labelElement.classList.add('force-light-theme');
+        // Temporarily apply a class to force light theme for capture
+        const labelInner = labelElement.querySelector('div');
+        labelInner.classList.add('force-light-theme');
 
-        html2canvas(labelElement, {
-            backgroundColor: null,
-            scale: 3, // Increase scale for better resolution
-            // Explicitly set the canvas dimensions to match the element
-            width: labelElement.offsetWidth,
-            height: labelElement.offsetHeight
+        html2canvas(labelElement, { 
+            backgroundColor: null, // Use transparent background
+            scale: 3 // Increase scale for better resolution
         }).then(canvas => {
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/png');
             link.download = `label_${serialNumber}.png`;
             link.click();
-            // Remove the temporary class after the capture is complete
-            labelElement.classList.remove('force-light-theme');
+            // Remove the temporary class after capture
+            labelInner.classList.remove('force-light-theme');
         });
     };
 
-    // --- Caching logic ---
     function listenToCollection(collectionName, config) {
-        if (activeListeners[collectionName]) return;
-
-        const listener = onSnapshot(collection(db, collectionName), (snapshot) => {
+        onSnapshot(collection(db, collectionName), (snapshot) => {
             allData[collectionName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
             if (config.isInventory) {
                 if(document.getElementById(`${collectionName.toLowerCase()}-page`).style.display === 'block') {
                     buildTable(collectionName);
@@ -1179,163 +1136,11 @@
             console.error(`Error listening to ${collectionName}: `, error);
             let msg = `Error fetching data for ${collectionName}.`;
             if (error.code === 'permission-denied') msg = `Permission Denied. Check Firestore Rules.`;
-            
-            if (config.isInventory) buildTable(collectionName, msg);
+            if (config.isInventory) buildTable(collectionName, [], msg);
             else if (collectionName === 'LoanHistory') buildLoanHistoryCards([], msg);
             else if (collectionName === 'Software') buildSoftwareCards([], msg);
-
-            delete activeListeners[collectionName];
-        });
-
-        activeListeners[collectionName] = listener;
-    }
-    
-    // --- START: User Management Functions ---
-
-    async function callAdminFunction(functionName, body) {
-        try {
-            const token = await auth.currentUser.getIdToken(true);
-            const functionUrl = `https://us-central1-inventory-eedef.cloudfunctions.net/${functionName}`;
-            
-            const response = await fetch(functionUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(body)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'An error occurred.');
-            }
-            return await response.json();
-
-        } catch (error) {
-            console.error(`Error calling ${functionName}:`, error);
-            showNotificationModal('warning', 'Error', error.message);
-            throw error;
-        }
-    }
-
-    async function buildUserManagementPage() {
-        const page = document.getElementById('usermanagement-page');
-        page.innerHTML = `
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">User Management</h2>
-                <button onclick="openAddUserModal()" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
-                    <i class="fas fa-plus mr-2"></i>Add New User
-                </button>
-            </div>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Email</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">User ID (UID)</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Date Created</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="user-list-tbody" class="divide-y divide-gray-200 dark:divide-gray-700">
-                            <tr><td colspan="4" class="text-center p-6 text-gray-500">Loading users...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>`;
-        
-        try {
-            const { users } = await callAdminFunction('listUsers');
-            renderUsersTable(users);
-        } catch (error) {
-            document.getElementById('user-list-tbody').innerHTML = `<tr><td colspan="4" class="text-center p-6 text-red-500">Failed to load users. See console for details.</td></tr>`;
-        }
-    }
-    
-    function renderUsersTable(users) {
-        const tbody = document.getElementById('user-list-tbody');
-        tbody.innerHTML = '';
-        if (!users || users.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center p-6 text-gray-500">No users found.</td></tr>`;
-            return;
-        }
-
-        const currentUser = auth.currentUser;
-
-        users.forEach(user => {
-            const dateCreated = new Date(user.metadata.creationTime).toLocaleDateString();
-            const isCurrentUser = currentUser && user.uid === currentUser.uid;
-
-            let deleteButton = `<button onclick="handleDeleteUser('${user.uid}', '${user.email}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Delete User"><i class="fas fa-trash"></i></button>`;
-            if (isCurrentUser) {
-                deleteButton = `<button class="text-gray-400 cursor-not-allowed" title="You cannot delete yourself." disabled><i class="fas fa-trash"></i></button>`;
-            }
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">${user.email}</td>
-                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">${user.uid}</td>
-                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">${dateCreated}</td>
-                <td class="px-6 py-4 text-sm font-medium space-x-4">
-                    <button onclick="handleResetPassword('${user.email}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" title="Send Password Reset Email"><i class="fas fa-key"></i></button>
-                    ${deleteButton}
-                </td>
-            `;
-            tbody.appendChild(tr);
         });
     }
-    
-    window.openAddUserModal = () => {
-        const form = document.getElementById('addUserForm');
-        form.reset();
-        document.getElementById('addUserError').textContent = '';
-        document.getElementById('addUserModal').classList.remove('opacity-0', 'pointer-events-none');
-    };
-    
-    document.getElementById('addUserForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('newUserEmail').value;
-        const password = document.getElementById('newUserPassword').value;
-        const errorDiv = document.getElementById('addUserError');
-        errorDiv.textContent = '';
-        
-        try {
-            await callAdminFunction('createUser', { email, password });
-            hideModal('addUserModal');
-            showNotificationModal('success', 'User Created', `Successfully created user ${email}.`);
-            buildUserManagementPage(); // Refresh the user list
-        } catch (error) {
-            errorDiv.textContent = error.message;
-        }
-    });
-
-    window.handleDeleteUser = async (uid, email) => {
-        if (confirm(`Are you sure you want to delete the user "${email}"? This action cannot be undone.`)) {
-            try {
-                await callAdminFunction('deleteUser', { uid });
-                showNotificationModal('success', 'User Deleted', `Successfully deleted user ${email}.`);
-                buildUserManagementPage(); // Refresh the user list
-            } catch(error) {
-                // Error is already shown by callAdminFunction
-            }
-        }
-    };
-
-    window.handleResetPassword = async (email) => {
-        if (confirm(`Are you sure you want to send a password reset email to "${email}"?`)) {
-            try {
-                await sendPasswordResetEmail(auth, email);
-                showNotificationModal('success', 'Email Sent', `A password reset email has been sent to ${email}.`);
-            } catch (error) {
-                console.error("Error sending password reset email:", error);
-                showNotificationModal('warning', 'Error', `Could not send password reset email. Error: ${error.message}`);
-            }
-        }
-    };
-
-    // --- END: User Management Functions ---
     
     function updateDashboard() {
         const computers = allData['Computers'] || [];
@@ -1348,7 +1153,7 @@
         const getCountByStatus = (data, status) => data.filter(d => d.Status === status).length;
         
         const today = new Date();
-        today.setHours(0,0,0,0);
+        today.setHours(0,0,0,0); // Normalize to start of today
         
         const thirtyDaysFromNow = new Date(today);
         thirtyDaysFromNow.setDate(today.getDate() + 30);
@@ -1361,7 +1166,7 @@
 
         const twoDaysFromNow = new Date(today);
         twoDaysFromNow.setDate(today.getDate() + 2);
-        twoDaysFromNow.setHours(23, 59, 59, 999);
+        twoDaysFromNow.setHours(23, 59, 59, 999); // Normalize to end of the day
 
         const dueSoonItems = loanHistory.filter(loan => {
             if (loan.Status !== 'On Loan' || !loan.DueDate?.toDate) {
@@ -1379,6 +1184,7 @@
         document.getElementById('stat-total-disposed').textContent = getCountByStatus(allDevices, 'Disposed');
         document.getElementById('stat-total-warranty-ending').textContent = warrantyEndingSoon.length;
 
+        // Update Computer Card with Breakdown
         document.getElementById('cat-total-computers').textContent = computers.length;
         const computerTypes = collectionConfigs.Computers.dropdowns.Type;
         const computerBreakdownContainer = document.getElementById('computer-type-breakdown');
@@ -1387,21 +1193,24 @@
         computerTypes.forEach(type => {
             const computersOfType = computers.filter(c => c.Type === type);
             if (computersOfType.length > 0) {
-                computerBreakdownContainer.innerHTML += `
+                const typeHtml = `
                     <div>
                         <h4 class="font-semibold text-md text-gray-700 dark:text-gray-300 mb-2">${type} (${computersOfType.length})</h4>
                         <div class="space-y-2 text-sm pl-2">
-                            <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Active')}</span></div>
-                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium">${getCountByStatus(computersOfType, 'On Loan')}</span></div>
-                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Repair')}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Storage')}</span></div>
-                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Damaged')}</span></div>
-                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium">${getCountByStatus(computersOfType, 'Disposed')}</span></div>
+                            <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium text-green-500">${getCountByStatus(computersOfType, 'Active')}</span></div>
+                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium text-yellow-500">${getCountByStatus(computersOfType, 'On Loan')}</span></div>
+                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium text-orange-500">${getCountByStatus(computersOfType, 'Repair')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium text-gray-500">${getCountByStatus(computersOfType, 'Storage')}</span></div>
+                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium text-pink-500">${getCountByStatus(computersOfType, 'Damaged')}</span></div>
+                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium text-red-500">${getCountByStatus(computersOfType, 'Disposed')}</span></div>
                         </div>
-                    </div>`;
+                    </div>
+                `;
+                computerBreakdownContainer.innerHTML += typeHtml;
             }
         });
 
+        // Update Monitor Card
         document.getElementById('cat-total-monitors').textContent = monitors.length;
         document.getElementById('cat-monitors-active').textContent = getCountByStatus(monitors, 'Active');
         document.getElementById('cat-monitors-on-loan').textContent = getCountByStatus(monitors, 'On Loan');
@@ -1410,6 +1219,7 @@
         document.getElementById('cat-monitors-damaged').textContent = getCountByStatus(monitors, 'Damaged');
         document.getElementById('cat-monitors-disposed').textContent = getCountByStatus(monitors, 'Disposed');
 
+        // Update Audio Card
         document.getElementById('cat-total-audio').textContent = audio.length;
         document.getElementById('cat-audio-active').textContent = getCountByStatus(audio, 'Active');
         document.getElementById('cat-audio-on-loan').textContent = getCountByStatus(audio, 'On Loan');
@@ -1417,7 +1227,8 @@
         document.getElementById('cat-audio-storage').textContent = getCountByStatus(audio, 'Storage');
         document.getElementById('cat-audio-damaged').textContent = getCountByStatus(audio, 'Damaged');
         document.getElementById('cat-audio-disposed').textContent = getCountByStatus(audio, 'Disposed');
-        
+
+        // Update Accessory Card with Breakdown
         document.getElementById('cat-total-accessories').textContent = accessories.length;
         const accessoryTypes = collectionConfigs.Accessory.dropdowns.AccessoryType;
         const accessoryBreakdownContainer = document.getElementById('accessory-type-breakdown');
@@ -1426,23 +1237,27 @@
         accessoryTypes.forEach(type => {
             const accessoriesOfType = accessories.filter(c => c.AccessoryType === type);
             if (accessoriesOfType.length > 0) {
-                accessoryBreakdownContainer.innerHTML += `
+                const typeHtml = `
                     <div>
                         <h4 class="font-semibold text-md text-gray-700 dark:text-gray-300 mb-2">${type} (${accessoriesOfType.length})</h4>
                         <div class="space-y-2 text-sm pl-2">
-                             <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Active')}</span></div>
-                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'On Loan')}</span></div>
-                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Repair')}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Storage')}</span></div>
-                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Damaged')}</span></div>
-                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium">${getCountByStatus(accessoriesOfType, 'Disposed')}</span></div>
+                            <div class="flex justify-between"><span class="text-green-500">Active:</span><span class="font-medium text-green-500">${getCountByStatus(accessoriesOfType, 'Active')}</span></div>
+                            <div class="flex justify-between"><span class="text-yellow-500">On Loan:</span><span class="font-medium text-yellow-500">${getCountByStatus(accessoriesOfType, 'On Loan')}</span></div>
+                            <div class="flex justify-between"><span class="text-orange-500">Repair:</span><span class="font-medium text-orange-500">${getCountByStatus(accessoriesOfType, 'Repair')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Storage:</span><span class="font-medium text-gray-500">${getCountByStatus(accessoriesOfType, 'Storage')}</span></div>
+                            <div class="flex justify-between"><span class="text-pink-500">Damaged:</span><span class="font-medium text-pink-500">${getCountByStatus(accessoriesOfType, 'Damaged')}</span></div>
+                            <div class="flex justify-between"><span class="text-red-500">Disposed:</span><span class="font-medium text-red-500">${getCountByStatus(accessoriesOfType, 'Disposed')}</span></div>
                         </div>
-                    </div>`;
+                    </div>
+                `;
+                accessoryBreakdownContainer.innerHTML += typeHtml;
             }
         });
 
         const statusCounts = allDevices.reduce((acc, device) => {
-            if(device.Status) acc[device.Status] = (acc[device.Status] || 0) + 1;
+            if(device.Status) {
+               acc[device.Status] = (acc[device.Status] || 0) + 1;
+            }
             return acc;
         }, {});
         renderStatusChart(statusCounts);
@@ -1489,7 +1304,15 @@
     function renderRecentActivities(loanData, allDevices) {
         const tbody = document.getElementById('recent-activities-table');
         tbody.innerHTML = '';
-        const activities = loanData.map(loan => ({...loan, activityType: loan.ReturnDate ? 'Return' : 'Loan', activityTimestamp: (loan.ReturnDate || loan.LoanDate)?.toDate() || new Date(0)})).sort((a, b) => b.activityTimestamp - a.activityTimestamp).slice(0, 5);
+
+        const activities = loanData.map(loan => {
+            const activityDate = loan.ReturnDate ? loan.ReturnDate : loan.LoanDate;
+            return {
+                ...loan,
+                activityType: loan.ReturnDate ? 'Return' : 'Loan',
+                activityTimestamp: activityDate?.toDate ? activityDate.toDate() : new Date(0)
+            };
+        }).sort((a, b) => b.activityTimestamp - a.activityTimestamp).slice(0, 5);
 
         if (activities.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 dark:text-gray-400 py-4">No recent activity</td></tr>`;
@@ -1500,12 +1323,19 @@
             const config = collectionConfigs[act.DeviceType];
             const device = allDevices.find(d => config && d[config.serialField] === act.DeviceSerial);
             const deviceName = device && config ? device[config.nameField] : act.DeviceSerial;
-            const activityHtml = act.activityType === 'Loan' ? `<span class="font-semibold text-yellow-500">Loaned</span>` : `<span class="font-semibold text-green-500">Returned</span>`;
-            tbody.innerHTML += `<tr class="text-sm">
-                <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${deviceName}</td>
-                <td class="px-4 py-2">${activityHtml}</td>
-                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.BorrowerName}</td>
-                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.activityTimestamp.toLocaleDateString('th-TH')}</td></tr>`;
+            
+            const activityHtml = act.activityType === 'Loan'
+                ? `<span class="font-semibold text-yellow-500">Loaned</span>`
+                : `<span class="font-semibold text-green-500">Returned</span>`;
+
+            tbody.innerHTML += `
+                <tr class="text-sm">
+                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${deviceName}</td>
+                    <td class="px-4 py-2">${activityHtml}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.BorrowerName}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${act.activityTimestamp.toLocaleDateString('th-TH')}</td>
+                </tr>
+            `;
         });
     }
 
@@ -1524,14 +1354,18 @@
             const config = Object.values(collectionConfigs).find(c => device[c.serialField]);
             const category = Object.keys(collectionConfigs).find(key => allData[key].some(d => d.id === device.id)) || 'N/A';
             const endDate = new Date(device.WarrantyEndDate);
-            const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+            const diffTime = endDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            tbody.innerHTML += `<tr class="text-sm">
-                <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${device[config.nameField]}</td>
-                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device[config.serialField]}</td>
-                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${category}</td>
-                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device.WarrantyEndDate}</td>
-                <td class="px-4 py-2 font-semibold text-red-500">${diffDays} days</td></tr>`;
+            tbody.innerHTML += `
+                <tr class="text-sm">
+                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${device[config.nameField]}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device[config.serialField]}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${category}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${device.WarrantyEndDate}</td>
+                    <td class="px-4 py-2 font-semibold text-red-500">${diffDays} days</td>
+                </tr>
+            `;
         });
     }
 
@@ -1554,16 +1388,27 @@
             const deviceName = device && config ? device[config.nameField] : item.DeviceSerial;
             
             const dueDate = item.DueDate.toDate();
-            const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-            let daysText = `${diffDays} days`, textColor = 'text-yellow-500';
-            if (diffDays <= 0) { daysText = 'Due Today'; textColor = 'text-red-500 animate-pulse'; }
-            else if (diffDays === 1) { daysText = '1 day'; }
+            const diffTime = dueDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let daysLeftText = `${diffDays} days`;
+            let textColor = 'text-yellow-500';
+
+            if (diffDays <= 0) {
+                daysLeftText = 'Due Today';
+                textColor = 'text-red-500 animate-pulse';
+            } else if (diffDays === 1) {
+                daysLeftText = '1 day';
+            }
             
-            tbody.innerHTML += `<tr class="text-sm">
-                <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${item.BorrowerName}</td>
-                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${deviceName}</td>
-                <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${dueDate.toLocaleDateString('th-TH')}</td>
-                <td class="px-4 py-2 font-semibold ${textColor}">${daysText}</td></tr>`;
+            tbody.innerHTML += `
+                <tr class="text-sm">
+                    <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">${item.BorrowerName}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${deviceName}</td>
+                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${dueDate.toLocaleDateString('th-TH')}</td>
+                    <td class="px-4 py-2 font-semibold ${textColor}">${daysLeftText}</td>
+                </tr>
+            `;
         });
     }
     

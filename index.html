@@ -447,7 +447,7 @@
                     <!-- Info on the right -->
                     <div class="flex-1 flex flex-col justify-center text-right overflow-hidden">
                         <p id="labelDeviceName" class="font-bold text-xl leading-tight break-words"></p>
-                        <p id="labelSerial" class="text-base font-mono break-all mt-2"></p>
+                        <p id="labelSerial" class="text-base font-mono break-all mt-1"></p>
                     </div>
                 </div>
             </div>
@@ -1123,7 +1123,7 @@
         document.getElementById('labelSerial').textContent = `SN: ${serialNumber}`;
 
         const canvas = document.getElementById('labelQrCanvas');
-        const qrSize = 110; // Adjusted for new layout
+        const qrSize = 90; // Adjusted QR Code size for new layout
         canvas.width = qrSize;
         canvas.height = qrSize;
         

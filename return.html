@@ -9,296 +9,167 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .modal { transition: opacity 0.3s ease-in-out; }
-        .modal-content { transition: transform 0.3s ease-in-out; }
-        .modal.hidden { pointer-events: none; opacity: 0; }
-        .modal.hidden .modal-content { transform: scale(0.95); }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4 transition-colors duration-300">
 
     <div class="w-full max-w-2xl bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
         <div id="loading" class="text-center text-gray-500 dark:text-gray-400">
-            <p>Loading loan details...</p>
+            <p>Loading return information...</p>
+        </div>
+
+        <div id="content" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Return Items</h2>
+            <div id="returnDetails" class="text-sm mb-4 border-b dark:border-gray-700 pb-4"></div>
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-3">Items in this loan:</h3>
+            <div id="return-items-list" class="space-y-3"></div>
+            <div id="return-actions" class="mt-6 flex justify-end space-x-3"></div>
         </div>
         
-        <div id="content" class="hidden">
-            <div class="flex justify-between items-start mb-4">
-                 <h1 class="text-2xl font-bold text-gray-800 dark:text-white">คืนอุปกรณ์</h1>
-                 <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none">
-                    <i class="fas fa-moon text-gray-500 dark:text-gray-400"></i>
-                    <i class="fas fa-sun text-gray-500 dark:text-gray-400 hidden"></i>
-                </button>
-            </div>
-            <div id="returnDetails" class="text-sm mb-4 border-b dark:border-gray-700 pb-4"></div>
-            <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-3">รายการที่ยืม:</h2>
-            <div id="return-items-list" class="space-y-3"></div>
-            <div id="return-actions" class="mt-6 flex justify-end space-x-3">
-                <!-- Action buttons will be inserted here -->
-            </div>
-        </div>
-
-        <div id="not-found" class="hidden text-center text-red-500">
-             <h1 class="text-2xl font-bold mb-4">Loan Not Found</h1>
-             <p>The loan with the specified ID could not be found.</p>
+        <div id="not-found" class="hidden text-center">
+             <h2 class="text-2xl font-bold text-red-500 mb-4">Loan Not Found</h2>
+             <p class="text-gray-600 dark:text-gray-400">The provided Loan ID could not be found in the system. Please check the QR code and try again.</p>
         </div>
     </div>
-
-    <!-- Custom Alert/Confirm Modal -->
-    <div id="customModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div class="modal-content m-4 w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-xl">
-            <h3 id="modalTitle" class="text-lg font-bold text-gray-900 dark:text-white"></h3>
-            <p id="modalMessage" class="mt-2 text-sm text-gray-600 dark:text-gray-300"></p>
-            <div id="modalButtons" class="mt-6 flex justify-end space-x-3">
-                <!-- Buttons will be injected here by JavaScript -->
-            </div>
-        </div>
-    </div>
-
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, doc, writeBatch, serverTimestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, doc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew",
-            authDomain: "inventory-eedef.firebaseapp.com",
-            projectId: "inventory-eedef",
-            storageBucket: "inventory-eedef.appspot.com",
-            messagingSenderId: "1089383656081",
-            appId: "1:1089383656081:web:bb8e8237a701f356102d30"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew", authDomain: "inventory-eedef.firebaseapp.com", projectId: "inventory-eedef", storageBucket: "inventory-eedef.appspot.com", messagingSenderId: "1089383656081", appId: "1:1089383656081:web:bb8e8237a701f356102d30" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        let currentLoanItems = [];
+        const auth = getAuth(app);
 
         const collectionConfigs = {
-            Computers: { serialField: 'SerialNumber', nameField: 'ComputerName' },
-            Monitors: { serialField: 'MonitorSerial', nameField: 'Model' },
-            Audio: { serialField: 'SerialNumber', nameField: 'ItemName' },
-            Accessory: { serialField: 'SerialNumber', nameField: 'Model' }
+            Computers: { nameField: 'ComputerName', serialField: 'SerialNumber' },
+            Monitors: { nameField: 'Model', serialField: 'MonitorSerial' },
+            Audio: { nameField: 'ItemName', serialField: 'SerialNumber' },
+            Accessory: { nameField: 'Model', serialField: 'SerialNumber' }
         };
-
-        // --- Custom Modal Functions ---
-        const customModal = document.getElementById('customModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalButtons = document.getElementById('modalButtons');
-
-        function hideCustomModal() {
-            customModal.classList.add('hidden');
-        }
-
-        function showCustomModal(title, message, buttons = []) {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            modalButtons.innerHTML = ''; 
-
-            if (buttons.length === 0) {
-                buttons.push({
-                    text: 'OK',
-                    classes: 'bg-indigo-600 text-white hover:bg-indigo-700',
-                    onClick: hideCustomModal
-                });
-            }
-
-            buttons.forEach(btnInfo => {
-                const button = document.createElement('button');
-                button.textContent = btnInfo.text;
-                button.className = `rounded-lg px-4 py-2 text-sm font-semibold ${btnInfo.classes}`;
-                button.onclick = () => {
-                    hideCustomModal(); 
-                    if (btnInfo.onClick) {
-                        btnInfo.onClick();
-                    }
-                };
-                modalButtons.appendChild(button);
-            });
-
-            customModal.classList.remove('hidden');
-        }
 
         async function findDeviceBySerial(serial, collectionName) {
             const config = collectionConfigs[collectionName];
             if (!config) return null;
-            
             const q = query(collection(db, collectionName), where(config.serialField, "==", serial));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
-                return querySnapshot.docs[0];
+                const doc = querySnapshot.docs[0];
+                return { id: doc.id, ...doc.data() };
             }
             return null;
         }
-        
-        window.processReturn = (transactionId, deviceSerial, deviceType) => {
-            const confirmReturnAction = async () => {
-                try {
-                    const batch = writeBatch(db);
-                    const transactionRef = doc(db, "LoanHistory", transactionId);
+
+        window.processReturn = async (transactionId, deviceSerial, deviceType) => {
+             if (!confirm('Confirm return of this item?')) return;
+            try {
+                const batch = writeBatch(db);
+                const transactionRef = doc(db, "LoanHistory", transactionId);
+                batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
+                
+                const device = await findDeviceBySerial(deviceSerial, deviceType);
+                if (device) {
+                    const deviceRef = doc(db, deviceType, device.id);
+                    batch.update(deviceRef, { Status: 'Active' });
+                }
+                await batch.commit();
+                alert('Item returned successfully!');
+                location.reload();
+            } catch (error) { console.error("Error:", error); alert('Failed to return item.'); }
+        }
+
+        window.processReturnAll = async () => {
+             const loanGroupId = new URLSearchParams(window.location.search).get('id');
+             if (!confirm(`Are you sure you want to return all remaining items for loan ${loanGroupId}?`)) return;
+
+            try {
+                const q = query(collection(db, "LoanHistory"), where("LoanGroupID", "==", loanGroupId), where("Status", "==", "On Loan"));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    alert("All items have already been returned.");
+                    return;
+                }
+                
+                const batch = writeBatch(db);
+                for (const loanDoc of querySnapshot.docs) {
+                    const item = loanDoc.data();
+                    const transactionRef = doc(db, "LoanHistory", loanDoc.id);
                     batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
 
-                    const deviceDoc = await findDeviceBySerial(deviceSerial, deviceType);
-                    if (deviceDoc) {
-                        batch.update(deviceDoc.ref, { Status: 'Active' });
+                    const device = await findDeviceBySerial(item.DeviceSerial, item.DeviceType);
+                    if (device) {
+                        const deviceRef = doc(db, item.DeviceType, device.id);
+                        batch.update(deviceRef, { Status: 'Active' });
                     }
-                    
-                    await batch.commit();
-                    showCustomModal('Success', 'Item returned successfully!', [{
-                        text: 'OK',
-                        classes: 'bg-green-600 text-white hover:bg-green-700',
-                        onClick: () => window.location.reload()
-                    }]);
-                } catch (error) {
-                    console.error("Error returning item: ", error);
-                    showCustomModal('Error', 'Failed to return item. Please check the console for details.');
                 }
-            };
-
-            showCustomModal(
-                'Confirm Return',
-                'Are you sure you want to return this item?',
-                [
-                    { text: 'Cancel', classes: 'bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500' },
-                    { text: 'Confirm', classes: 'bg-red-600 text-white hover:bg-red-700', onClick: confirmReturnAction }
-                ]
-            );
-        }
-
-        window.processReturnAll = () => {
-            const itemsToReturn = currentLoanItems.filter(item => item.Status === 'On Loan');
-            if (itemsToReturn.length === 0) {
-                showCustomModal('Information', 'All items have already been returned.');
-                return;
-            }
-
-            const confirmReturnAllAction = async () => {
-                try {
-                    const batch = writeBatch(db);
-                    for (const item of itemsToReturn) {
-                        const transactionRef = doc(db, "LoanHistory", item.id);
-                        batch.update(transactionRef, { Status: 'Returned', ReturnDate: serverTimestamp() });
-                        const deviceDoc = await findDeviceBySerial(item.DeviceSerial, item.DeviceType);
-                        if (deviceDoc) {
-                            batch.update(deviceDoc.ref, { Status: 'Active' });
-                        }
-                    }
-                    await batch.commit();
-                    showCustomModal('Success', 'All items returned successfully!', [{
-                        text: 'OK',
-                        classes: 'bg-green-600 text-white hover:bg-green-700',
-                        onClick: () => window.location.reload()
-                    }]);
-                } catch (error) {
-                    console.error("Error returning all items: ", error);
-                    showCustomModal('Error', 'Failed to return all items. Please check the console for details.');
-                }
-            };
-            
-            showCustomModal(
-                'Confirm Return All',
-                `Are you sure you want to return all ${itemsToReturn.length} remaining items?`,
-                [
-                    { text: 'Cancel', classes: 'bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500' },
-                    { text: 'Confirm', classes: 'bg-red-600 text-white hover:bg-red-700', onClick: confirmReturnAllAction }
-                ]
-            );
-        }
-
-        // --- Theme Toggle Logic ---
-        const themeToggleBtn = document.getElementById('theme-toggle');
-
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-                themeToggleBtn.querySelector('.fa-moon').classList.add('hidden');
-                themeToggleBtn.querySelector('.fa-sun').classList.remove('hidden');
-            } else {
-                document.documentElement.classList.remove('dark');
-                themeToggleBtn.querySelector('.fa-moon').classList.remove('hidden');
-                themeToggleBtn.querySelector('.fa-sun').classList.add('hidden');
+                await batch.commit();
+                alert('All items returned successfully!');
+                location.reload();
+            } catch (error) {
+                console.error("Error returning all items: ", error);
+                alert('Failed to return all items.');
             }
         }
-
-        themeToggleBtn.addEventListener('click', function() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
-            applyTheme(isDark ? 'dark' : 'light');
-        });
 
         window.addEventListener('load', async () => {
-            // Apply theme on load
-            const savedTheme = localStorage.getItem('color-theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
-
-            // Load loan data
-            const params = new URLSearchParams(window.location.search);
-            const loanGroupId = params.get('id');
-
             const loadingDiv = document.getElementById('loading');
             const contentDiv = document.getElementById('content');
             const notFoundDiv = document.getElementById('not-found');
-
-            if (!loanGroupId) {
-                loadingDiv.style.display = 'none';
-                notFoundDiv.style.display = 'block';
-                return;
-            }
-
-            const q = query(collection(db, "LoanHistory"), where("LoanGroupID", "==", loanGroupId));
-            const querySnapshot = await getDocs(q);
             
-            loadingDiv.style.display = 'none';
+            try {
+                await signInAnonymously(auth);
 
-            if (!querySnapshot.empty) {
-                currentLoanItems = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                const firstItem = currentLoanItems[0];
+                const urlParams = new URLSearchParams(window.location.search);
+                const loanGroupId = urlParams.get('id');
 
-                const loanDateObj = firstItem.LoanDate?.toDate ? firstItem.LoanDate.toDate() : new Date(firstItem.LoanDate || null);
-                const loanDate = !isNaN(loanDateObj) ? loanDateObj.toLocaleDateString('th-TH') : 'N/A';
+                if (!loanGroupId) {
+                    loadingDiv.style.display = 'none';
+                    notFoundDiv.style.display = 'block';
+                    return;
+                }
 
-                const dueDateObj = firstItem.DueDate?.toDate ? firstItem.DueDate.toDate() : new Date(firstItem.DueDate || null);
-                const dueDate = !isNaN(dueDateObj) ? dueDateObj.toLocaleDateString('th-TH') : 'N/A';
-                
-                document.getElementById('returnDetails').innerHTML = `
-                    <p><strong>Loan Group ID:</strong> ${loanGroupId}</p>
-                    <p><strong>ผู้ยืม:</strong> ${firstItem.BorrowerName}</p>
-                    <p><strong>วันที่ยืม:</strong> ${loanDate}</p>
-                    <p><strong>กำหนดคืน:</strong> ${dueDate}</p>
-                `;
-                const itemsList = document.getElementById('return-items-list');
-                itemsList.innerHTML = '';
+                const q = query(collection(db, "LoanHistory"), where("LoanGroupID", "==", loanGroupId));
+                const querySnapshot = await getDocs(q);
 
-                let hasItemsToReturn = false;
+                loadingDiv.style.display = 'none';
 
-                for (const item of currentLoanItems) {
-                    const deviceDoc = await findDeviceBySerial(item.DeviceSerial, item.DeviceType);
-                    const config = collectionConfigs[item.DeviceType];
-                    const deviceName = (config && deviceDoc?.data()) ? deviceDoc.data()[config.nameField] : item.DeviceSerial;
+                if (!querySnapshot.empty) {
+                    const loanItems = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    const firstItem = loanItems[0];
+                    document.getElementById('returnDetails').innerHTML = `<p><strong>Loan Group ID:</strong> ${loanGroupId}</p><p><strong>Borrower:</strong> ${firstItem.BorrowerName}</p>`;
                     
-                    const isReturned = item.Status === 'Returned';
-                    
-                    if (!isReturned) {
-                        hasItemsToReturn = true;
+                    const itemsList = document.getElementById('return-items-list');
+                    let hasItemsToReturn = false;
+
+                    for (const item of loanItems) {
+                        const config = collectionConfigs[item.DeviceType];
+                        const deviceDoc = await findDeviceBySerial(item.DeviceSerial, item.DeviceType);
+                        const deviceName = deviceDoc ? deviceDoc[config.nameField] : item.DeviceSerial;
+                        
+                        const isReturned = item.Status === 'Returned';
+                        if (!isReturned) hasItemsToReturn = true;
+
+                        let buttonHtml = isReturned 
+                            ? `<span class="text-sm text-gray-500 dark:text-gray-400 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
+                            : `<button onclick="processReturn('${item.id}', '${item.DeviceSerial}', '${item.DeviceType}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
+                        
+                        itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b dark:border-gray-700"><p class="text-gray-800 dark:text-gray-200">${deviceName}</p>${buttonHtml}</div>`;
                     }
 
-                    let buttonHtml = isReturned 
-                        ? `<span class="text-sm text-gray-500 dark:text-gray-400 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
-                        : `<button onclick="processReturn('${item.id}', '${item.DeviceSerial}', '${item.DeviceType}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
-                    
-                    itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b dark:border-gray-700"><p class="text-gray-800 dark:text-gray-200">${deviceName}</p>${buttonHtml}</div>`;
-                }
+                    const actionsDiv = document.getElementById('return-actions');
+                    if (hasItemsToReturn) {
+                        actionsDiv.innerHTML = `<button onclick="processReturnAll()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Return All</button>`;
+                    }
 
-                const actionsDiv = document.getElementById('return-actions');
-                if (hasItemsToReturn) {
-                    actionsDiv.innerHTML = `<button onclick="processReturnAll()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Return All</button>`;
+                    contentDiv.style.display = 'block';
+                } else {
+                    notFoundDiv.style.display = 'block';
                 }
-
-                contentDiv.style.display = 'block';
-            } else {
-                notFoundDiv.style.display = 'block';
+            } catch (error) {
+                console.error("Initialization Failed:", error);
+                loadingDiv.innerHTML = `<p class="text-red-500">Initialization Failed. Please check console for details.</p>`;
             }
         });
     </script>

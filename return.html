@@ -15,18 +15,20 @@
 
     <div class="w-full max-w-2xl bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
         <div id="loading" class="text-center text-gray-500 dark:text-gray-400">
+            <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
             <p>Loading return information...</p>
         </div>
 
         <div id="content" class="hidden">
             <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Return Items</h2>
-            <div id="returnDetails" class="text-sm mb-4 border-b dark:border-gray-700 pb-4"></div>
+            <div id="returnDetails" class="text-sm mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border dark:border-gray-700"></div>
             <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-3">Items in this loan:</h3>
             <div id="return-items-list" class="space-y-3"></div>
             <div id="return-actions" class="mt-6 flex justify-end space-x-3"></div>
         </div>
         
         <div id="not-found" class="hidden text-center">
+             <i class="fas fa-exclamation-circle text-5xl text-red-500 mb-4"></i>
              <h2 class="text-2xl font-bold text-red-500 mb-4">Loan Not Found</h2>
              <p class="text-gray-600 dark:text-gray-400">The provided Loan ID could not be found in the system. Please check the QR code and try again.</p>
         </div>
@@ -43,10 +45,10 @@
         const auth = getAuth(app);
 
         const collectionConfigs = {
-            Computers: { nameField: 'ComputerName', serialField: 'SerialNumber' },
-            Monitors: { nameField: 'Model', serialField: 'MonitorSerial' },
-            Audio: { nameField: 'ItemName', serialField: 'SerialNumber' },
-            Accessory: { nameField: 'Model', serialField: 'SerialNumber' }
+            Computers: { nameField: 'ComputerName', serialField: 'SerialNumber', icon: 'fa-laptop' },
+            Monitors: { nameField: 'Model', serialField: 'MonitorSerial', icon: 'fa-desktop' },
+            Audio: { nameField: 'ItemName', serialField: 'SerialNumber', icon: 'fa-volume-up' },
+            Accessory: { nameField: 'Model', serialField: 'SerialNumber', icon: 'fa-keyboard' }
         };
 
         async function findDeviceBySerial(serial, collectionName) {
@@ -138,7 +140,7 @@
                 if (!querySnapshot.empty) {
                     const loanItems = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                     const firstItem = loanItems[0];
-                    document.getElementById('returnDetails').innerHTML = `<p><strong>Loan Group ID:</strong> ${loanGroupId}</p><p><strong>Borrower:</strong> ${firstItem.BorrowerName}</p>`;
+                    document.getElementById('returnDetails').innerHTML = `<div class="flex justify-between items-center"><p class="text-gray-600 dark:text-gray-300"><strong>Borrower:</strong> ${firstItem.BorrowerName}</p><p class="text-gray-500 dark:text-gray-400 text-xs">ID: ${loanGroupId}</p></div>`;
                     
                     const itemsList = document.getElementById('return-items-list');
                     let hasItemsToReturn = false;
@@ -151,16 +153,29 @@
                         const isReturned = item.Status === 'Returned';
                         if (!isReturned) hasItemsToReturn = true;
 
-                        let buttonHtml = isReturned 
-                            ? `<span class="text-sm text-gray-500 dark:text-gray-400 font-medium inline-flex items-center"><i class="fas fa-check-circle text-green-500 mr-1.5"></i>Returned</span>`
-                            : `<button onclick="processReturn('${item.id}', '${item.DeviceSerial}', '${item.DeviceType}')" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-full hover:bg-green-600">Return</button>`;
+                        let statusHtml = isReturned 
+                            ? `<span class="text-sm text-green-600 dark:text-green-400 font-medium inline-flex items-center"><i class="fas fa-check-circle mr-1.5"></i>Returned</span>`
+                            : `<button onclick="processReturn('${item.id}', '${item.DeviceSerial}', '${item.DeviceType}')" class="text-sm bg-blue-500 text-white font-semibold py-1 px-4 rounded-full hover:bg-blue-600 transition-colors">Return</button>`;
                         
-                        itemsList.innerHTML += `<div class="flex justify-between items-center py-2 border-b dark:border-gray-700"><p class="text-gray-800 dark:text-gray-200">${deviceName}</p>${buttonHtml}</div>`;
+                        itemsList.innerHTML += `
+                            <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas ${config.icon} text-xl text-gray-400"></i>
+                                    <div>
+                                        <p class="font-semibold text-gray-800 dark:text-gray-200">${deviceName}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">SN: ${item.DeviceSerial}</p>
+                                    </div>
+                                </div>
+                                ${statusHtml}
+                            </div>
+                        `;
                     }
 
                     const actionsDiv = document.getElementById('return-actions');
                     if (hasItemsToReturn) {
-                        actionsDiv.innerHTML = `<button onclick="processReturnAll()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Return All</button>`;
+                        actionsDiv.innerHTML = `<button onclick="processReturnAll()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2"><i class="fas fa-undo-alt"></i><span>Return All Remaining Items</span></button>`;
+                    } else {
+                        actionsDiv.innerHTML = `<p class="text-center text-green-600 font-semibold">All items have been returned. Thank you!</p>`;
                     }
 
                     contentDiv.style.display = 'block';
@@ -175,3 +190,4 @@
     </script>
 </body>
 </html>
+

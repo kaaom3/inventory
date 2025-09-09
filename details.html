@@ -18,144 +18,94 @@
         <div id="content" class="hidden">
             <div class="flex justify-between items-start">
                 <div>
-                    <h1 id="deviceName" class="text-2xl font-bold text-gray-800 dark:text-white mb-2"></h1>
-                    <p id="deviceSub" class="text-md text-gray-500 dark:text-gray-400 mb-6"></p>
+                    <h1 id="deviceName" class="text-2xl font-bold text-gray-800 dark:text-white mb-1"></h1>
+                    <p id="deviceSub" class="text-sm text-gray-500 dark:text-gray-400"></p>
                 </div>
-                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none">
-                    <i class="fas fa-moon text-gray-500 dark:text-gray-400"></i>
-                    <i class="fas fa-sun text-gray-500 dark:text-gray-400 hidden"></i>
-                </button>
             </div>
-            <div id="deviceFields" class="space-y-3 border-t dark:border-gray-700 pt-4">
-                <!-- Device fields will be inserted here -->
+            <div id="deviceFields" class="mt-6 space-y-2">
+                <!-- Fields will be injected here -->
             </div>
         </div>
-        <div id="not-found" class="hidden text-center text-red-500">
-             <h1 class="text-2xl font-bold mb-4">Device Not Found</h1>
-             <p>The device with the specified Serial Number could not be found.</p>
+        <div id="not-found" class="hidden text-center">
+             <h2 class="text-2xl font-bold text-red-500 mb-4">Device Not Found</h2>
+             <p class="text-gray-600 dark:text-gray-400">The provided serial number could not be found in the system.</p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew",
-            authDomain: "inventory-eedef.firebaseapp.com",
-            projectId: "inventory-eedef",
-            storageBucket: "inventory-eedef.appspot.com",
-            messagingSenderId: "1089383656081",
-            appId: "1:1089383656081:web:bb8e8237a701f356102d30"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyAqZ-xhY6WtIu4CEMOZqITWvqlnc5vF4Ew", authDomain: "inventory-eedef.firebaseapp.com", projectId: "inventory-eedef", storageBucket: "inventory-eedef.appspot.com", messagingSenderId: "1089383656081", appId: "1:1089383656081:web:bb8e8237a701f356102d30" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         const collectionConfigs = {
-            Computers: { 
-                serialField: 'SerialNumber', 
-                nameField: 'ComputerName', 
-                subField: 'Model',
-                fieldsToShow: ['Status', 'Type', 'Location', 'UserName', 'SerialNumber', 'CPU', 'RAM_GB', 'DiskSize_GB', 'OS', 'IPAddress', 'WarrantyStartDate', 'WarrantyEndDate']
-            },
-            Monitors: { 
-                serialField: 'MonitorSerial', 
-                nameField: 'Model', 
-                subField: 'Manufacturer',
-                fieldsToShow: ['Status', 'MonitorSerial', 'ComputerName', 'WarrantyStartDate', 'WarrantyEndDate']
-            },
-            Audio: { 
-                serialField: 'SerialNumber', 
-                nameField: 'ItemName', 
-                subField: 'Model',
-                fieldsToShow: ['Status', 'SerialNumber', 'Manufacturer', 'WarrantyStartDate', 'WarrantyEndDate']
-            },
-            Accessory: {
-                serialField: 'SerialNumber',
-                nameField: 'Model',
-                subField: 'AccessoryType',
-                fieldsToShow: ['Status', 'AccessoryType', 'SerialNumber', 'UserName', 'AssignedComputer', 'WarrantyEndDate']
-            }
+            Computers: { nameField: 'ComputerName', subField: 'Model', serialField: 'SerialNumber', fieldsToShow: ['SerialNumber', 'UserName', 'Status', 'Type', 'Location', 'WarrantyEndDate'] },
+            Monitors: { nameField: 'Model', subField: 'ComputerName', serialField: 'MonitorSerial', fieldsToShow: ['MonitorSerial', 'UserName', 'Status', 'WarrantyEndDate'] },
+            Audio: { nameField: 'ItemName', subField: 'Model', serialField: 'SerialNumber', fieldsToShow: ['SerialNumber', 'Status', 'WarrantyEndDate'] },
+            Accessory: { nameField: 'Model', subField: 'AccessoryType', serialField: 'SerialNumber', fieldsToShow: ['SerialNumber', 'UserName', 'Status', 'WarrantyEndDate'] }
         };
 
-        async function findDeviceBySerial(serial) {
-            for (const collectionName in collectionConfigs) {
-                const config = collectionConfigs[collectionName];
-                const q = query(collection(db, collectionName), where(config.serialField, "==", serial), limit(1));
+        async function findDeviceBySerial(serialNumber) {
+            for (const key in collectionConfigs) {
+                const config = collectionConfigs[key];
+                const q = query(collection(db, key), where(config.serialField, "==", serialNumber));
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
-                    const doc = querySnapshot.docs[0];
-                    return { data: doc.data(), config: config };
+                    return { data: querySnapshot.docs[0].data(), config: config };
                 }
             }
             return null;
         }
-        
-        // --- Theme Toggle ---
-        const themeToggleBtn = document.getElementById('theme-toggle');
-
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-                themeToggleBtn.querySelector('.fa-moon').classList.add('hidden');
-                themeToggleBtn.querySelector('.fa-sun').classList.remove('hidden');
-            } else {
-                document.documentElement.classList.remove('dark');
-                themeToggleBtn.querySelector('.fa-moon').classList.remove('hidden');
-                themeToggleBtn.querySelector('.fa-sun').classList.add('hidden');
-            }
-        }
-
-        themeToggleBtn.addEventListener('click', function() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
-            applyTheme(isDark ? 'dark' : 'light');
-        });
-
 
         window.addEventListener('load', async () => {
-            const savedTheme = localStorage.getItem('color-theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
-
-            const params = new URLSearchParams(window.location.search);
-            const serialNumber = params.get('sn');
-
             const loadingDiv = document.getElementById('loading');
             const contentDiv = document.getElementById('content');
             const notFoundDiv = document.getElementById('not-found');
 
-            if (!serialNumber) {
+            try {
+                await signInAnonymously(auth);
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const serialNumber = urlParams.get('sn');
+
+                if (!serialNumber) {
+                    loadingDiv.style.display = 'none';
+                    notFoundDiv.style.display = 'block';
+                    return;
+                }
+
+                const result = await findDeviceBySerial(serialNumber);
+
                 loadingDiv.style.display = 'none';
-                notFoundDiv.style.display = 'block';
-                return;
-            }
 
-            const result = await findDeviceBySerial(serialNumber);
-
-            loadingDiv.style.display = 'none';
-
-            if (result) {
-                const { data, config } = result;
-                document.getElementById('deviceName').textContent = data[config.nameField] || 'N/A';
-                document.getElementById('deviceSub').textContent = data[config.subField] || '';
-                
-                const fieldsContainer = document.getElementById('deviceFields');
-                fieldsContainer.innerHTML = '';
-                config.fieldsToShow.forEach(key => {
-                    if (data[key]) {
-                        fieldsContainer.innerHTML += `
-                            <div class="flex justify-between border-b dark:border-gray-700 py-2">
-                                <span class="text-gray-500 dark:text-gray-400">${key}</span>
-                                <span class="font-semibold text-gray-800 dark:text-gray-200 text-right">${data[key]}</span>
-                            </div>
-                        `;
-                    }
-                });
-                contentDiv.style.display = 'block';
-            } else {
-                notFoundDiv.style.display = 'block';
+                if (result) {
+                    const { data, config } = result;
+                    document.getElementById('deviceName').textContent = data[config.nameField] || 'N/A';
+                    document.getElementById('deviceSub').textContent = data[config.subField] || '';
+                    
+                    const fieldsContainer = document.getElementById('deviceFields');
+                    fieldsContainer.innerHTML = '';
+                    config.fieldsToShow.forEach(key => {
+                        if (data[key]) {
+                            fieldsContainer.innerHTML += `
+                                <div class="flex justify-between border-b dark:border-gray-700 py-2">
+                                    <span class="text-gray-500 dark:text-gray-400">${key}</span>
+                                    <span class="font-semibold text-gray-800 dark:text-gray-200 text-right">${data[key]}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                    contentDiv.style.display = 'block';
+                } else {
+                    notFoundDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error("Initialization Failed:", error);
+                loadingDiv.innerHTML = `<p class="text-red-500">Initialization Failed. Please check console for details.</p>`;
             }
         });
     </script>
